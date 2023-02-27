@@ -24,7 +24,15 @@ def round_complete(board):
     return len([c for c in board.top_card.values() if c]) == 6
     
 
+def wait(time):
+    while time > 0:
+        event = pygame.event.poll()
+        if event.type == pygame.QUIT:
+            pygame.quit()
 
+        pygame.time.wait(1)
+        time -= 1
+    
 
 def init():
     # init renderer
@@ -51,6 +59,8 @@ def init():
 
 if __name__ == "__main__":
     board, renderer = init()
+
+    counter = 0
     
     while True:
         event = pygame.event.poll()
@@ -64,13 +74,13 @@ if __name__ == "__main__":
             board.handle_bet_selection()
             renderer.render(board)
 
-            time.sleep(0.5)
+            wait(500)
 
             board.handle_card_selection()
             renderer.render(board)
 
             board.next_turn()
-            time.sleep(1.5)
+            wait(1500)
 
         print("ROUND COMPLETE", board.top_card)
 

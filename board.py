@@ -60,6 +60,9 @@ class Board():
 
 			# TODO: Implement player selection
 			# Place a bet at random
+			while True:
+				pass
+				
 			available = [suit for suit in self.bets if len(self.bets[suit]) < 4]
 			choice = random.choice(available)
 			self.bets[choice].append(player.fruit)

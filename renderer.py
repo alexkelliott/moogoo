@@ -104,4 +104,11 @@ class Renderer():
 			self.surface.blit(player_card, (x_cord, PLAYER_HAND_TOP + 5))
 			x_cord += COLUMN_SPACING
 
+		# for event in pygame. event.get():
+		# 	if event.type == pygame.MOUSEBUTTONDOWN:
+		# 		if event.button == 1:
+		# 			print(pygame.mouse.get_pos())
+		# 			print()
+
+
 		pygame.display.flip()
