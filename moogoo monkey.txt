@@ -1,0 +1,86 @@
+Moogoo Monkey in Javascript Project
+Alex Elliott 2015 - 
+
+
+BASIC SETUP:
+
+The game has a total of 48 cards
+
+standard cards are noted as banana cards
+42 cards are standard 1 - 7 cards
+6 sets of 7 cards
+
+	**Bonus cards(6 total)
+	2 bonko orangutan cards - place under any monkey acts as a 0 banana card
+	2 king gorilla cards - wipe out any cards piles on which they are played
+	2 rainbow gibbon cards - randomize all top cards under every monkey
+
+3 players:
+	Coconut (The default player's icon)
+	Watermelon
+	Pineapple
+
+6 Color monkies:
+       COLOR        RGB CREDENTIALS   SUIT ID
+     * 1- Orange  | (255, 140, 59)  | [O]
+	 * 2- Blue    | (64, 91, 199)   | [B]
+	 * 3- Green   | (190, 232, 63)  | [G]
+	 * 4- Purple  | (176, 63, 232)  | [P]
+	 * 5- Red     | (222, 0, 22)    | [R]
+	 * 6- Silver  | (217, 217, 217) | [S]
+
+Each monkey has 4 slots arranged in a 2*2 configuration.
+
+The player has 5 cards in his inventory, these cards cannot be duplicate of cards in the computer's hands nor cards that are still in the deck.
+	
+
+
+BEGINNING GAMEPLAY:
+
+Once it is the player's turn, the player will be asked to place a coconut on one of the monkey's that do not have all of their slots filled with bets. This will automatically add 1 point to the player's score.
+
+Next, the player will be asked to place a card out of his inventory and place it on a monkey of his choosing. That card will automatically replace whatever card was placed on top of it.
+
+When a card is selected to be placed on the board, it is voided from the inventory of said player.
+
+In the event that a card is overwritten, it will return the dealer.
+
+
+
+ENDING EACH ROUND:
+
+Once every monkey has a card under it, whichever monkey has the lowest value card is erased. All of the bets placed on said monkey are voided and subtracted from the players' scores.
+
+In the event that all monkeys' slots contain cards but there is a tie for the lowest value, play will continue until their is a absolute lowest number. If all betting slots are filled up durring this event, the players' turn will consist of only placing cards. 
+ 
+
+
+DETERMINING WINNER:	
+	
+The winner is determined by the amount of icons on all of the monkey's at the end of the entire game. 
+Whoever has the most icons wins
+
+In the event that their is a tie between two or more players, instead of ranking first, second, and third, it will say for example ''first and second place: Alice and Mat'' or ''first, second, and third place: Alice, Mat, and Tim'' 
+
+
+
+SPRITE SHEET INFORMATION:
+-monkeySheet.png
+	-each monkey 80px*80px
+	
+-cardSheet.png
+	-each card 80px*106px
+	
+-fruitSheet.png
+	-each fruit 33px*37px
+	
+
+
+
+
+
+new colors
+purple, teal, green, red, orange, silver
+
+
+https://www.youtube.com/watch?v=OS2vwvHN448
