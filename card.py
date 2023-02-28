@@ -4,7 +4,11 @@ class Card():
 		self.suit = suit
 		self.rank = rank
 		self.value = value
-		self.filename = self.suit.value + self.rank + ".png" 
+		
+		
+	# filename may change through the game with '?' cards
+	def get_filename(self):
+		return str(self.suit.value) + str(self.rank) + ".png" 
 
 
 	def __repr__(self):

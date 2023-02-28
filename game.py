@@ -17,11 +17,6 @@ screen_width = 720
 surface = pygame.display.set_mode((screen_width, screen_height))
 
 nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
-
-
-# return's true if the round is complete
-def round_complete(board):
-    return len([c for c in board.top_card.values() if c]) == 6
     
 
 def wait(time):
@@ -32,7 +27,7 @@ def wait(time):
 
         pygame.time.wait(1)
         time -= 1
-    
+
 
 def init():
     # init renderer
@@ -45,14 +40,9 @@ def init():
         players.append(Player(names[0], Fruit.WATERMELON))
         players.append(Player(names[1], Fruit.PINEAPPLE))
         
-
         # init board
         board = Board(players)
         board.deal_cards()
-
-        # board.handle_turn(players[1])
-
-        # board.handle_turn(players[2])
 
         return board, renderer
 
@@ -69,20 +59,25 @@ if __name__ == "__main__":
 
         renderer.render(board)
 
-        while not round_complete(board):
-            
-            board.handle_bet_selection()
-            renderer.render(board)
-
+        while not board.round_complete():
+            renderer.player_turn_popup(board.players[board.turn])
             wait(500)
-
-            board.handle_card_selection()
             renderer.render(board)
 
-            board.next_turn()
-            wait(1500)
+            wait(100)
+            board.handle_bet_selection(renderer)
+            renderer.render(board)
 
-        print("ROUND COMPLETE", board.top_card)
+            if board.turn: # only wait if its a computer
+                wait(350)
+
+            if board.handle_card_selection(renderer):
+                renderer.render(board)
+                wait(400)
+
+            next_player = board.next_turn()
+
+        print("ROUND COMPLETE!", board.top_card)
 
         renderer.render(board)
 

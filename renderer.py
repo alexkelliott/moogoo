@@ -9,9 +9,13 @@ DEALER_TOP = 60
 SCORE_BAY_TOP = 275
 BET_BOX_TOP = 150
 BET_OFFSET = 2
+BET_BOX_WIDTH = 80
 CARD_BAY_TOP = 240
+CARD_SIZE = (80, 106)
 PLAYER_HAND_TOP = 355
+PLAYER_FIRST_CARD_TOP = PLAYER_HAND_TOP + 5
 PLAYER_HAND_LEFT = 165
+PLAYER_FIRST_CARD_LEFT = PLAYER_HAND_LEFT + 10
 COLUMN_LEFT = 125
 COLUMN_SPACING = 100
 
@@ -21,11 +25,53 @@ class Renderer():
 	def __init__(self, surface):
 		self.surface = surface
 		self.font1 = pygame.font.Font(os.path.join('fonts', '8bitOperatorPlus-Regular.ttf'), 28)
+		self.hovered_bet = None # condider moving this to board
+		self.hovered_card = None # ondider moving this to board
+		self.top_text = ""
+
+		# intialize the boundary boxes for selecting bets
+		self.bet_boundaries = {}
+		x_cord = COLUMN_LEFT
+		for suit in Suit:
+			self.bet_boundaries[suit] = {
+				"left"  : x_cord,
+				"right" : x_cord + BET_BOX_WIDTH,
+				"top"   : BET_BOX_TOP,
+				"bottom": BET_BOX_TOP + BET_BOX_WIDTH,
+			}
+			x_cord += COLUMN_SPACING
+
+		# intialize the boundary boxes for selecting cards
+		self.card_boundaries = {}
+		x_cord = PLAYER_FIRST_CARD_LEFT
+		for i in range(5): # 5 cards
+			self.card_boundaries[i] = {
+				"left"  : x_cord,
+				"right" : x_cord + CARD_SIZE[0],
+				"top"   : PLAYER_FIRST_CARD_TOP,
+				"bottom": PLAYER_FIRST_CARD_TOP + CARD_SIZE[1],
+			}
+			x_cord += COLUMN_SPACING
+
 
 	def render(self, board):
+		# mouse
+		# TODO: Implement mouse change on hover
+		if self.hovered_bet or self.hovered_card:
+			pass
+		else:
+			pass
+
 		# background
 		background = pygame.image.load(os.path.join('images', 'greenbackdrop.png'))
 		self.surface.blit(background, (0,0))
+
+		# top text
+		background = pygame.image.load(os.path.join('images', 'top_text_background.png'))
+		self.surface.blit(background, (PLAYER_HAND_LEFT, 5))
+		text1 = self.font1.render(self.top_text, True, WHITE)
+		text_rect = text1.get_rect(center=(PLAYER_HAND_LEFT + 250, 30))
+		self.surface.blit(text1, text_rect)
 
 		# dealer
 		dealer = pygame.image.load(os.path.join('images', 'dealer.png'))
@@ -34,17 +80,18 @@ class Renderer():
 		# monkeys
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-		    monkey = pygame.image.load(os.path.join('images', "monkeys", suit.value+".png"))
-		    self.surface.blit(monkey, (x_cord, DEALER_TOP))
-		    x_cord += COLUMN_SPACING
+			monkey = pygame.image.load(os.path.join('images', "monkeys", suit.value+".png"))
+			self.surface.blit(monkey, (x_cord, DEALER_TOP))
+			x_cord += COLUMN_SPACING
 
 		# bet boxes
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-		    for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
-		        bet_box = pygame.image.load(os.path.join('images', "bet_box.png"))
-		        self.surface.blit(bet_box, coords)
-		    x_cord += COLUMN_SPACING
+			for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
+				filename = "bet_box_hover.png" if suit == self.hovered_bet else "bet_box.png"
+				bet_box = pygame.image.load(os.path.join('images', filename))
+				self.surface.blit(bet_box, coords)
+			x_cord += COLUMN_SPACING
 
 		# bets
 		x_cord = COLUMN_LEFT
@@ -69,7 +116,7 @@ class Renderer():
 		x_cord = COLUMN_LEFT
 		for card in board.top_card.values():
 			if card:
-				card_img = pygame.image.load(os.path.join('images', "cards", card.filename))
+				card_img = pygame.image.load(os.path.join('images', "cards", card.get_filename()))
 				self.surface.blit(card_img, (x_cord, CARD_BAY_TOP))
 			x_cord += COLUMN_SPACING
 
@@ -98,17 +145,27 @@ class Renderer():
 		self.surface.blit(player_hand, (PLAYER_HAND_LEFT, PLAYER_HAND_TOP))
 
 		# player's cards
-		x_cord = PLAYER_HAND_LEFT + 10
-		for card in board.players[0].hand:
-			player_card = pygame.image.load(os.path.join('images', "cards", card.filename))
-			self.surface.blit(player_card, (x_cord, PLAYER_HAND_TOP + 5))
-			x_cord += COLUMN_SPACING
+		if sum([len(board.bets[suit]) for suit in Suit]) >= 3:
+			x_cord = PLAYER_FIRST_CARD_LEFT
+			for card in board.players[0].hand:
+				player_card = pygame.image.load(os.path.join('images', "cards", card.get_filename()))
+				self.surface.blit(player_card, (x_cord, PLAYER_FIRST_CARD_TOP))
 
-		# for event in pygame. event.get():
-		# 	if event.type == pygame.MOUSEBUTTONDOWN:
-		# 		if event.button == 1:
-		# 			print(pygame.mouse.get_pos())
-		# 			print()
+				if card == self.hovered_card:
+					card_hover = pygame.image.load(os.path.join('images', "card_hover.png"))
+					self.surface.blit(card_hover, (x_cord, PLAYER_FIRST_CARD_TOP))
 
+				x_cord += COLUMN_SPACING
 
 		pygame.display.flip()
+
+
+	def player_turn_popup(self, player):
+		string = player.name + "'s turn"
+		background = pygame.image.load(os.path.join('images', 'top_text_background.png'))
+		self.surface.blit(background, (PLAYER_HAND_LEFT, 205))
+		text1 = self.font1.render(string, True, WHITE)
+		text_rect = text1.get_rect(center=(PLAYER_HAND_LEFT + 250, 230))
+		self.surface.blit(text1, text_rect)
+		pygame.display.flip()
+

@@ -11,9 +11,6 @@ class Player():
 		self.score = 0
 		self.is_human = is_human
 
-		# new_card = card.Card(Suit.ORANGE, "3", 3)
-		# print(new_card)
-
 
 	def __repr__(self):
 		return "Player: <" + self.name + ", " + str(self.fruit) + ">"
