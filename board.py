@@ -18,29 +18,44 @@ class Board():
 
 	def reset(self):
 		# reset deck
+		# print("deck pre removal", self.deck)
+		self.deck = []
+		# print("deck after removal", self.deck)
+		# print("removed_suits", self.removed_suits)
 		for suit in Suit:
 			if suit not in self.removed_suits:
 				for value in range(8):
 					rank = 'q' if value == 0 else str(value)
+					# print("adding", suit, rank)
 					self.deck.append(card.Card(suit, rank, value))
+
+		# print("after deck", self.deck)
+
+
+		# reset player hands
+		for player in self.players:
+			player.hand = []
 
 		# reset bets and cards
 		for suit in Suit:
-			if suit not in self.removed_suits:
-				self.bets[suit] = []
-				self.top_card[suit] = None
+			# if suit not in self.removed_suits:
+			self.bets[suit] = []
+			self.top_card[suit] = None
+
+		# reset turn
+		self.turn = 2
 
 
 	# return's lowest monkey if the round is complete
 	def round_complete(self):
 		top_card_list = [c for c in self.top_card.values() if c]
-		six_cards = len(top_card_list) == 6
+		full_cards = (len(top_card_list) == 6 - len(self.removed_suits))
 
-		if six_cards:
+		if full_cards:
 			top_card_list.sort(key=lambda x: x.value)
 			no_tie = top_card_list[0].value != top_card_list[1].value
 
-			if six_cards and no_tie:
+			if full_cards and no_tie:
 				self.removed_suits.append(top_card_list[0].suit)
 				print("Removed", top_card_list[0].suit)
 
@@ -52,6 +67,16 @@ class Board():
 
 				return True
 		return False
+
+
+	def game_complete(self):
+		return len(self.removed_suits) == 3
+
+
+	def final_scores(self):
+		sorted_players = self.players
+		sorted_players.sort(key=lambda x: x.score, reverse=True)
+		return sorted_players
 
 
 	def deal_cards(self):
@@ -71,12 +96,8 @@ class Board():
 		return choice
 
 
-	def next_turn(self, manual_set=None):
-		if manual_set:
-			self.turn = manual_set
-		else:
-			self.turn = (self.turn + 1) % 3
-
+	def next_turn(self):
+		self.turn = (self.turn + 1) % 3
 		return self.players[self.turn]
 
 
@@ -84,7 +105,7 @@ class Board():
 		mouse = pygame.mouse.get_pos()
 
 		for suit in Suit:
-			if len(self.bets[suit]) < 4:
+			if suit not in self.removed_suits and len(self.bets[suit]) < 4:
 				bound = bet_boundaries[suit]
 				if bound["left"] <= mouse[0] <= bound["right"] and bound["top"] <= mouse[1] <= bound["bottom"]:
 					return suit
@@ -115,7 +136,7 @@ class Board():
 
 		else: # computer's turn
 			# Place a bet at random
-			available = [suit for suit in self.bets if len(self.bets[suit]) < 4] # find spots with < 4 bets
+			available = [suit for suit in self.bets if suit not in self.removed_suits and len(self.bets[suit]) < 4] # find spots with < 4 bets
 			choice = random.choice(available)
 
 		self.bets[choice].append(player.fruit)

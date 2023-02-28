@@ -25,8 +25,8 @@ class Renderer():
 	def __init__(self, surface):
 		self.surface = surface
 		self.font1 = pygame.font.Font(os.path.join('fonts', '8bitOperatorPlus-Regular.ttf'), 28)
-		self.hovered_bet = None # condider moving this to board
-		self.hovered_card = None # ondider moving this to board
+		self.hovered_bet = None # consider moving this to board
+		self.hovered_card = None # consider moving this to board
 		self.top_text = ""
 
 		# intialize the boundary boxes for selecting bets
@@ -80,17 +80,19 @@ class Renderer():
 		# monkeys
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-			monkey = pygame.image.load(os.path.join('images', "monkeys", suit.value+".png"))
-			self.surface.blit(monkey, (x_cord, DEALER_TOP))
+			if suit not in board.removed_suits:
+				monkey = pygame.image.load(os.path.join('images', "monkeys", suit.value+".png"))
+				self.surface.blit(monkey, (x_cord, DEALER_TOP))
 			x_cord += COLUMN_SPACING
 
 		# bet boxes
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-			for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
-				filename = "bet_box_hover.png" if suit == self.hovered_bet else "bet_box.png"
-				bet_box = pygame.image.load(os.path.join('images', filename))
-				self.surface.blit(bet_box, coords)
+			if suit not in board.removed_suits:
+				for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
+					filename = "bet_box_hover.png" if suit == self.hovered_bet else "bet_box.png"
+					bet_box = pygame.image.load(os.path.join('images', filename))
+					self.surface.blit(bet_box, coords)
 			x_cord += COLUMN_SPACING
 
 		# bets
@@ -102,15 +104,15 @@ class Renderer():
 				filename = board.bets[suit][i].value + "fruit.png"
 				fruit = pygame.image.load(os.path.join('images', filename))
 				self.surface.blit(fruit, coords[i])
-
 			x_cord += COLUMN_SPACING
 
 		# card bays
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-		    card_bay = pygame.image.load(os.path.join('images', "card_bay.png"))
-		    self.surface.blit(card_bay, (x_cord, CARD_BAY_TOP))
-		    x_cord += COLUMN_SPACING
+			if suit not in board.removed_suits:
+				card_bay = pygame.image.load(os.path.join('images', "card_bay.png"))
+				self.surface.blit(card_bay, (x_cord, CARD_BAY_TOP))
+			x_cord += COLUMN_SPACING
 
 		# top cards
 		x_cord = COLUMN_LEFT
