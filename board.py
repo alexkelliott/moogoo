@@ -128,7 +128,7 @@ class Board():
 					renderer.render(self)
 
 				for ev in pygame.event.get():
-					if ev.type == pygame.MOUSEBUTTONDOWN:
+					if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
 						if renderer.hovered_bet:
 							choice = renderer.hovered_bet
 							renderer.hovered_bet = None
@@ -179,7 +179,7 @@ class Board():
 					renderer.render(self)
 
 				for ev in pygame.event.get():
-					if ev.type == pygame.MOUSEBUTTONDOWN:
+					if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
 						if renderer.hovered_card:
 							choice = renderer.hovered_card
 							renderer.hovered_bet = None
