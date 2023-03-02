@@ -133,6 +133,8 @@ class Board():
 							choice = renderer.hovered_bet
 							renderer.hovered_bet = None
 							break
+					if ev.type == pygame.QUIT:
+						pygame.quit()
 
 		else: # computer's turn
 			# Place a bet at random
@@ -182,6 +184,8 @@ class Board():
 							choice = renderer.hovered_card
 							renderer.hovered_bet = None
 							break
+					if ev.type == pygame.QUIT:
+						pygame.quit()
 
 		else: # computer's turn
 			choice = random.choice(player.hand)
