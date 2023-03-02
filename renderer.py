@@ -54,11 +54,10 @@ class Renderer():
 
 	def render(self, board):
 		# mouse
-		# TODO: Implement mouse change on hover
 		if self.hovered_bet or self.hovered_card:
-			pass
+			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 		else:
-			pass
+			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 		# background
 		background = pygame.image.load(os.path.join('assets', 'images', 'background.png'))
