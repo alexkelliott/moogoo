@@ -94,18 +94,19 @@ class Renderer():
 		# bets
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-			coords = [(x_cord + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET)]
+			if suit not in board.removed_suits:
+				coords = [(x_cord + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET)]
 
-			for i in range(len(board.bets[suit])):
-				filename = board.bets[suit][i].value + ".png"
-				fruit = pygame.image.load(os.path.join('assets', 'images', 'fruits', filename))
-				self.surface.blit(fruit, coords[i])
+				for i in range(len(board.bets[suit])):
+					filename = board.bets[suit][i].value + ".png"
+					fruit = pygame.image.load(os.path.join('assets', 'images', 'fruits', filename))
+					self.surface.blit(fruit, coords[i])
 			x_cord += COLUMN_SPACING
 
 		# top cards
 		x_cord = COLUMN_LEFT
 		for card in board.top_card.values():
-			if card:
+			if card and card.suit not in board.removed_suits:
 				card_img = pygame.image.load(os.path.join('assets', 'images', "cards", card.get_filename()))
 				self.surface.blit(card_img, (x_cord, CARD_BAY_TOP))
 			x_cord += COLUMN_SPACING

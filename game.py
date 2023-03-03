@@ -42,7 +42,6 @@ def init():
         
         # init board
         board = Board(players)
-        board.deal_cards()
 
         return board, renderer
 
@@ -55,7 +54,10 @@ if __name__ == "__main__":
         if event.type == pygame.QUIT:
             break
 
+        board.reset()
+        board.deal_cards()
         renderer.render(board)
+        wait(500)
 
         while not board.round_complete():
             renderer.top_text = "Place a bet"
@@ -80,11 +82,6 @@ if __name__ == "__main__":
                 wait(400)
 
             next_player = board.next_turn()
-
-        wait(500)
-        board.reset()
-        board.deal_cards()
-        renderer.render(board)
 
     renderer.top_text = "Game over"
     renderer.render(board)

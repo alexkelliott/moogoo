@@ -13,7 +13,7 @@ class Board():
 		self.top_card = {}
 		self.players = players
 		self.turn = 2 # {0, 1, 2}. game starts on player 2 for some reason		
-		self.removed_suits = []
+		self.removed_suits = [Suit.ORANGE, Suit.RED]
 
 		self.reset()
 	
@@ -86,13 +86,14 @@ class Board():
 
 
 	# grab a single card after a card is played
-	def get_card(self):
+	def get_card(self, player):
 		if len(self.deck) == 0:
-			return None
+			return
 
 		choice = random.choice(self.deck)
-		self.deck.remove(choice)
-		return choice
+		if choice:
+			self.deck.remove(choice)
+			player.hand.append(choice)
 
 
 	def next_turn(self):
@@ -113,6 +114,13 @@ class Board():
 
 
 	def handle_bet_selection(self, renderer):
+
+		# if the bet boxes are all full, skip to chosing a card
+		if all([len(self.bets[suit]) == 4 for suit in Suit if suit not in self.removed_suits]):
+			print("All full!")
+			return
+
+
 		player = self.players[self.turn]
 		choice = None
 
@@ -186,7 +194,7 @@ class Board():
 
 		self.top_card[choice.suit] = choice
 		player.hand.remove(choice)
-		player.hand.append(self.get_card())
+		self.get_card(player)
 
 		return choice
 
