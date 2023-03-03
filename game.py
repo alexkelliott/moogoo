@@ -4,8 +4,7 @@ import random
 import time
 
 from player import Player
-
-from fruit import Fruit
+from enums import Fruit
 from board import Board
 from renderer import Renderer
 
@@ -72,7 +71,8 @@ if __name__ == "__main__":
                 renderer.top_text = "Play a card"
             renderer.render(board)
 
-            if board.turn: # only wait if its a computer
+            # only wait for card selection if its a computer's turn
+            if board.turn:
                 wait(350)
 
             # card selection if enough bets are on the table
@@ -86,7 +86,6 @@ if __name__ == "__main__":
     renderer.top_text = "Game over"
     renderer.render(board)
     wait(1000)
-
     renderer.game_over_screen(board.final_scores())
 
     while True:

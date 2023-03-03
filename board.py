@@ -2,7 +2,7 @@ import random
 import pygame
 import time
 import card
-from suit import Suit
+from enums import Suit
 
 debug = False
 

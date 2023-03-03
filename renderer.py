@@ -1,7 +1,6 @@
 import pygame
 import os
-from suit import Suit
-from fruit import Fruit
+from enums import Fruit, Suit
 
 # positional constants
 DEALER_LEFT = 10
@@ -159,9 +158,7 @@ class Renderer():
 		filename = player.fruit.value + ".png"
 		fruit_img = pygame.image.load(os.path.join('assets', 'images', 'fruits', filename))
 		
-
 		# draw elements on screen
-		
 		background = pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(text_rect.x-10, text_rect.y-5, text_rect.w+20, text_rect.h+10))
 		self.surface.blit(fruit_img, (text_rect.x+5, text_rect.y))
 		self.surface.blit(text1, text_rect)

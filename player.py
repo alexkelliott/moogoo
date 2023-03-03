@@ -1,6 +1,5 @@
-from suit import Suit
-from fruit import Fruit
 import card
+from enums import Fruit
 
 class Player():
 	def __init__(self, name, fruit, is_human=False):
