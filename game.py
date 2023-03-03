@@ -49,8 +49,6 @@ def init():
 
 if __name__ == "__main__":
     board, renderer = init()
-
-    counter = 0
     
     while not board.game_complete():
         event = pygame.event.poll()
@@ -83,22 +81,21 @@ if __name__ == "__main__":
 
             next_player = board.next_turn()
 
-        print("ROUND COMPLETE!", board.top_card)
-
+        wait(500)
         board.reset()
         board.deal_cards()
         renderer.render(board)
 
+    renderer.top_text = "Game over"
+    renderer.render(board)
+    wait(1000)
 
-    print("GAME OVER")
-
-    final_ranking = board.final_scores()
-    for player in final_ranking:
-        print(player.fruit, player.name, player.score)
-
+    renderer.game_over_screen(board.final_scores())
 
     while True:
-        pass
+        event = pygame.event.poll()
+        if event.type == pygame.QUIT:
+            break
 
     pygame.quit()
         

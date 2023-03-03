@@ -18,6 +18,7 @@ COLUMN_LEFT = 125
 COLUMN_SPACING = 100
 
 WHITE = (255, 255, 255)
+DARK_GREEN = (0, 104, 76)
 
 class Renderer():
 	def __init__(self, surface):
@@ -127,8 +128,6 @@ class Renderer():
 					text_rect = score.get_rect(center=(DEALER_LEFT + 70, y_cord + 18))
 					self.surface.blit(score, text_rect)
 
-					# self.surface.blit(score, (DEALER_LEFT + 55, y_cord - 2))
-
 			y_cord += 40
 
 		# player's cards
@@ -161,12 +160,26 @@ class Renderer():
 		
 
 		# draw elements on screen
-		color = (0, 104, 76)
-		background = pygame.draw.rect(self.surface, color, pygame.Rect(text_rect.x-10, text_rect.y-5, text_rect.w+20, text_rect.h+10))
+		
+		background = pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(text_rect.x-10, text_rect.y-5, text_rect.w+20, text_rect.h+10))
 		self.surface.blit(fruit_img, (text_rect.x+5, text_rect.y))
 		self.surface.blit(text1, text_rect)
 		pygame.display.flip()
 
 
-	def game_over_screen(self):
-		pass
+	def game_over_screen(self, players):
+		# Dark green background
+		background = pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(75, 170, 570, 140))
+
+		# Text
+		words = [" wins", " is second", " is third"]
+		y_offset = [-40, 0, 40]
+		for i in range(len(players)):
+			string = players[i].name + words[i] + " with " + str(players[i].score)
+			text1 = self.font1.render(string, True, WHITE)
+			text_rect = text1.get_rect(center=(self.surface.get_width() / 2, (self.surface.get_height() / 2) + y_offset[i]))
+			self.surface.blit(text1, text_rect)
+
+		pygame.display.flip()
+
+

@@ -25,7 +25,6 @@ class Board():
 			if suit not in self.removed_suits:
 				for value in range(8):
 					rank = 'q' if value == 0 else str(value)
-					# print("adding", suit, rank)
 					self.deck.append(card.Card(suit, rank, value))
 
 		# reset player hands
@@ -59,7 +58,7 @@ class Board():
 			if full_cards and no_tie:
 				self.removed_suits.append(top_card_list[0].suit)
 
-				# remove the bets under the removed suit
+				# remove the bets under the removed suit for player score
 				for bet in self.bets[top_card_list[0].suit]:
 					for player in self.players:
 						if bet == player.fruit:
@@ -115,8 +114,6 @@ class Board():
 
 	def handle_bet_selection(self, renderer):
 		player = self.players[self.turn]
-		print(str(player) + " is placing a bet")
-
 		choice = None
 
 		if player.is_human: # Human player's turn
@@ -159,16 +156,10 @@ class Board():
 
 
 	def handle_card_selection(self, renderer):
-
 		player = self.players[self.turn]
-		
-		if debug:
-			print(str(player) + " is placing a card")
-
 		choice = None
 
 		if player.is_human:
-			choice = None
 			while not choice:
 				new_hovered = self.get_hovered_card(renderer.card_boundaries)
 				if new_hovered != renderer.hovered_card:
@@ -186,7 +177,6 @@ class Board():
 
 		else: # computer's turn
 			choice = random.choice(player.hand)
-		
 
 		# if the card is '?' assign it a value
 		if choice.rank == 'q':
