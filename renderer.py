@@ -132,7 +132,7 @@ class Renderer():
 			y_cord += 40
 
 		# player's cards
-		if sum([len(board.bets[suit]) for suit in Suit]) >= 3:
+		if board.three_bets():
 			x_cord = PLAYER_FIRST_CARD_LEFT
 
 			for card in board.players[0].hand:
@@ -149,11 +149,24 @@ class Renderer():
 
 
 	def player_turn_popup(self, player):
-		string = player.name + "'s turn"
-		background = pygame.image.load(os.path.join('assets', 'images', 'top_text_background.png'))
-		self.surface.blit(background, ((self.surface.get_width() / 2) - 250, (self.surface.get_height() / 2) - 25))
+		string = "     " + player.name + "'s turn" # space at front to keep box centered when fruit image is added
+
+		# text
 		text1 = self.font1.render(string, True, WHITE)
 		text_rect = text1.get_rect(center=(self.surface.get_width() / 2, self.surface.get_height() / 2))
+
+		# fruit image
+		filename = player.fruit.value + ".png"
+		fruit_img = pygame.image.load(os.path.join('assets', 'images', 'fruits', filename))
+		
+
+		# draw elements on screen
+		color = (0, 104, 76)
+		background = pygame.draw.rect(self.surface, color, pygame.Rect(text_rect.x-10, text_rect.y-5, text_rect.w+20, text_rect.h+10))
+		self.surface.blit(fruit_img, (text_rect.x+5, text_rect.y))
 		self.surface.blit(text1, text_rect)
 		pygame.display.flip()
 
+
+	def game_over_screen(self):
+		pass

@@ -4,6 +4,8 @@ import time
 import card
 from suit import Suit
 
+debug = False
+
 class Board():
 	def __init__(self, players):
 		self.deck = []
@@ -18,19 +20,13 @@ class Board():
 
 	def reset(self):
 		# reset deck
-		# print("deck pre removal", self.deck)
 		self.deck = []
-		# print("deck after removal", self.deck)
-		# print("removed_suits", self.removed_suits)
 		for suit in Suit:
 			if suit not in self.removed_suits:
 				for value in range(8):
 					rank = 'q' if value == 0 else str(value)
 					# print("adding", suit, rank)
 					self.deck.append(card.Card(suit, rank, value))
-
-		# print("after deck", self.deck)
-
 
 		# reset player hands
 		for player in self.players:
@@ -46,6 +42,11 @@ class Board():
 		self.turn = 2
 
 
+	# returns True/False whether or not there are at least three bets on the board
+	def three_bets(self):
+		return sum([len(self.bets[suit]) for suit in Suit]) >= 3
+
+
 	# return's lowest monkey if the round is complete
 	def round_complete(self):
 		top_card_list = [c for c in self.top_card.values() if c]
@@ -57,7 +58,6 @@ class Board():
 
 			if full_cards and no_tie:
 				self.removed_suits.append(top_card_list[0].suit)
-				print("Removed", top_card_list[0].suit)
 
 				# remove the bets under the removed suit
 				for bet in self.bets[top_card_list[0].suit]:
@@ -116,7 +116,6 @@ class Board():
 	def handle_bet_selection(self, renderer):
 		player = self.players[self.turn]
 		print(str(player) + " is placing a bet")
-		renderer.top_text = "Place a bet"
 
 		choice = None
 
@@ -160,13 +159,11 @@ class Board():
 
 
 	def handle_card_selection(self, renderer):
-		# no card selection unless enough bets are on the table
-		if sum([len(self.bets[suit]) for suit in Suit]) <= 3:
-			return
-		player = self.players[self.turn]
-		print(str(player) + " is placing a card")
 
-		renderer.top_text = "Play a card"
+		player = self.players[self.turn]
+		
+		if debug:
+			print(str(player) + " is placing a card")
 
 		choice = None
 
@@ -182,7 +179,7 @@ class Board():
 					if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
 						if renderer.hovered_card:
 							choice = renderer.hovered_card
-							renderer.hovered_bet = None
+							renderer.hovered_card = None
 							break
 					if ev.type == pygame.QUIT:
 						pygame.quit()

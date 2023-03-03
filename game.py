@@ -60,18 +60,24 @@ if __name__ == "__main__":
         renderer.render(board)
 
         while not board.round_complete():
+            renderer.top_text = "Place a bet"
+            renderer.render(board)
             renderer.player_turn_popup(board.players[board.turn])
             wait(500)
-            renderer.render(board)
+            renderer.render(board) # erase turn popup
 
             wait(100)
             board.handle_bet_selection(renderer)
+            if board.three_bets():
+                renderer.top_text = "Play a card"
             renderer.render(board)
 
             if board.turn: # only wait if its a computer
                 wait(350)
 
-            if board.handle_card_selection(renderer):
+            # card selection if enough bets are on the table
+            if board.three_bets():
+                board.handle_card_selection(renderer)
                 renderer.render(board)
                 wait(400)
 
