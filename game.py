@@ -54,7 +54,6 @@ if __name__ == "__main__":
             break
 
         board.reset()
-        board.deal_cards()
         renderer.render(board)
         wait(500)
 

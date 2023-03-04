@@ -9,33 +9,45 @@ debug = False
 class Board():
 	def __init__(self, players):
 		self.deck = []
+		for suit in Suit:
+			for value in range(8):
+				rank = 'q' if value == 0 else str(value)
+				self.deck.append(card.Card(suit, rank, value))
+
 		self.bets = {}
+		for suit in Suit:
+			self.bets[suit] = []
+
 		self.top_card = {}
+		for suit in Suit:
+			self.top_card[suit] = None
+
 		self.players = players
 		self.turn = 2 # {0, 1, 2}. game starts on player 2 for some reason		
-		self.removed_suits = [Suit.ORANGE, Suit.RED]
+		self.removed_suits = []
 
 		self.reset()
 	
 
 	def reset(self):
-		# reset deck
-		self.deck = []
+		# place cards that were top cards back in the deck
 		for suit in Suit:
-			if suit not in self.removed_suits:
-				for value in range(8):
-					rank = 'q' if value == 0 else str(value)
-					self.deck.append(card.Card(suit, rank, value))
-
-		# reset player hands
-		for player in self.players:
-			player.hand = []
-
-		# reset bets and cards
-		for suit in Suit:
-			# if suit not in self.removed_suits:
-			self.bets[suit] = []
+			if self.top_card[suit]:
+				self.deck.append(self.top_card[suit])
 			self.top_card[suit] = None
+
+		# remove removed-suit cards from the deck
+		self.deck = [c for c in self.deck if c.suit not in self.removed_suits]
+
+		# remove removed-suit cards from players' hands
+		for player in self.players:
+			player.hand = [c for c in player.hand if c.suit not in self.removed_suits]
+
+		# fill now-empty card slots in players' hands
+		for player in self.players:
+			cards = random.sample(self.deck, 5 - len(player.hand))
+			player.hand.extend(cards)
+			self.deck = [c for c in self.deck if c not in player.hand] # remove these cards from dealer deck
 
 		# reset turn
 		self.turn = 2
@@ -65,6 +77,7 @@ class Board():
 							player.score -= 1
 
 				return True
+
 		return False
 
 
@@ -76,13 +89,6 @@ class Board():
 		sorted_players = self.players
 		sorted_players.sort(key=lambda x: x.score, reverse=True)
 		return sorted_players
-
-
-	def deal_cards(self):
-		for player in self.players:
-			cards = random.sample(self.deck, 5)
-			player.hand = cards
-			self.deck = [c for c in self.deck if c not in player.hand] # remove these cards from dealer deck
 
 
 	# grab a single card after a card is played
@@ -117,9 +123,7 @@ class Board():
 
 		# if the bet boxes are all full, skip to chosing a card
 		if all([len(self.bets[suit]) == 4 for suit in Suit if suit not in self.removed_suits]):
-			print("All full!")
 			return
-
 
 		player = self.players[self.turn]
 		choice = None
@@ -185,6 +189,15 @@ class Board():
 
 		else: # computer's turn
 			choice = random.choice(player.hand)
+
+		# return previous top card to the deck
+		if self.top_card[choice.suit]:
+			# make it a "?" again if it was before
+			if self.top_card[choice.suit].is_q:
+				self.top_card[choice.suit].rank = "q"
+				self.top_card[choice.suit].value = 0
+
+			self.deck.append(self.top_card[choice.suit])
 
 		# if the card is '?' assign it a value
 		if choice.rank == 'q':

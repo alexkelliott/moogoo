@@ -4,7 +4,7 @@ class Card():
 		self.suit = suit
 		self.rank = rank
 		self.value = value
-		
+		self.is_q = rank == "q"
 		
 	# filename may change through the game with '?' cards
 	def get_filename(self):
