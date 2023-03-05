@@ -97,10 +97,6 @@ def update_game(board):
     # POST_CARD_SELECTION => TURN_POPUP, ROUND_ENDED, GAME_OVER_SCREEN
     elif board.state == State.POST_CARD_SELECTION and board.wait_time == 0:
         if board.round_complete():
-            if board.game_complete():
-                board.state = State.GAME_OVER_SCREEN
-                return
-
             board.state = State.ROUND_ENDED
             board.wait_time = Wait.ROUND_ENDED.value
 
@@ -109,9 +105,14 @@ def update_game(board):
             board.state = State.TURN_POPUP
             board.wait_time = Wait.TURN_POPUP.value
 
-    # ROUND_ENDED => TURN_POPUP
+    # ROUND_ENDED => TURN_POPUP, GAME_OVER_SCREEN
     elif board.state == State.ROUND_ENDED and board.wait_time == 0:
         board.reset()
+        
+        if board.game_complete():
+            board.state = State.GAME_OVER_SCREEN
+            return
+
         board.state = State.TURN_POPUP
         board.wait_time = Wait.TURN_POPUP.value
 

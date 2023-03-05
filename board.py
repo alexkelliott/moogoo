@@ -101,6 +101,7 @@ class Board():
 				for player in self.players:
 					if bet == player.fruit:
 						player.score -= 1
+			self.bets[suit] = []
 
 
 	# returns True/False whether or not there are at least three bets on the board

@@ -13,7 +13,7 @@ class Renderer():
 		self.assets['images']['background'] = pygame.image.load(os.path.join('assets', 'images', 'background.png'))
 		self.assets['images']['dealer'] = pygame.image.load(os.path.join('assets', 'images', 'dealer.png'))
 		for suit in Suit:
-			self.assets['images']['monkeys'][suit.value] = pygame.image.load(os.path.join('assets', 'images', 'monkeys', suit.value+'.png'))
+			self.assets['images']['monkeys'][suit.value] = pygame.image.load(os.path.join('assets', 'images', 'monkeys', suit.value + '.png'))
 		self.assets['images']['red_x'] = pygame.image.load(os.path.join('assets', 'images', 'redx.png'))
 		self.assets['images']['bet_box_hover'] = pygame.image.load(os.path.join('assets', 'images', 'bet_box_hover.png'))
 		for fruit in Fruit:
@@ -72,7 +72,6 @@ class Renderer():
 					self.surface.blit(self.assets['images']['red_x'], (x_cord, DEALER_TOP))
 
 			x_cord += COLUMN_SPACING
-
 
 		# bet box hover
 		x_cord = COLUMN_LEFT
