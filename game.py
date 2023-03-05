@@ -15,27 +15,10 @@ pygame.display.set_caption('Moogoo Monkey')
 screen_height = 480
 screen_width = 720
 fps = 60
+clock = pygame.time.Clock()
 surface = pygame.display.set_mode((screen_width, screen_height))
 
 nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
-    
-
-# REMOVE THIS
-clock = pygame.time.Clock()
-font = pygame.font.SysFont("Arial", 18)
-def update_fps():
-    fps = str(int(clock.get_fps()))
-    fps_text = font.render(fps, 1, pygame.Color("coral"))
-    return fps_text
-
-def wait(time):
-    while time > 0:
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
-            pygame.quit()
-
-        pygame.time.wait(1)
-        time -= 1
 
 
 def init():
@@ -105,21 +88,26 @@ def update_game(board):
     elif board.state == State.PRE_CARD_SELECTION and board.wait_time == 0:
         board.state = State.CARD_SELECTION
 
-    # CARD_SELECTION => TURN_POPUP, ROUND_ENDED, GAME_OVER_SCREEN
+    # CARD_SELECTION => POST_CARD_SELECTION
     elif board.state == State.CARD_SELECTION:
         if board.handle_card_selection():
-            if board.round_complete():
-                if board.game_complete():
-                    board.state = State.GAME_OVER_SCREEN
-                    return
+            board.state = State.POST_CARD_SELECTION
+            board.wait_time = Wait.POST_CARD_SELECTION.value
 
-                board.state = State.ROUND_ENDED
-                board.wait_time = Wait.ROUND_ENDED.value
+    # POST_CARD_SELECTION => TURN_POPUP, ROUND_ENDED, GAME_OVER_SCREEN
+    elif board.state == State.POST_CARD_SELECTION and board.wait_time == 0:
+        if board.round_complete():
+            if board.game_complete():
+                board.state = State.GAME_OVER_SCREEN
+                return
 
-            else:
-                board.next_turn()
-                board.state = State.TURN_POPUP
-                board.wait_time = Wait.TURN_POPUP.value
+            board.state = State.ROUND_ENDED
+            board.wait_time = Wait.ROUND_ENDED.value
+
+        else:
+            board.next_turn()
+            board.state = State.TURN_POPUP
+            board.wait_time = Wait.TURN_POPUP.value
 
     # ROUND_ENDED => TURN_POPUP
     elif board.state == State.ROUND_ENDED and board.wait_time == 0:

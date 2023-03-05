@@ -25,6 +25,7 @@ class Board():
 		self.players = players
 		self.turn = 2 # {0, 1, 2}. game starts on player 2 for some reason		
 		self.removed_suits = []
+		self.killed_suit = None # suit of monkey currently being removed
 
 		self.state = State.TURN_POPUP
 		self.wait_time = Wait.TURN_POPUP.value
@@ -61,12 +62,19 @@ class Board():
 		self.reset()
 	
 
-	def reset(self):
-		# figure out which suit is to be removed
+	def lowest_suit(self):
 		top_card_list = [c for c in self.top_card.values() if c]
 		if len(top_card_list) > 0:
 			top_card_list.sort(key=lambda x: x.value)
-			self.removed_suits.append(top_card_list[0].suit)
+			return top_card_list[0].suit
+		return None
+
+
+	def reset(self):
+		# figure out which suit is to be removed
+		lowest_suit = self.lowest_suit()
+		if lowest_suit:
+			self.removed_suits.append(lowest_suit)
 
 		# place cards that were top cards back in the deck
 		for suit in Suit:

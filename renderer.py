@@ -14,6 +14,7 @@ class Renderer():
 		self.assets['images']['dealer'] = pygame.image.load(os.path.join('assets', 'images', 'dealer.png'))
 		for suit in Suit:
 			self.assets['images']['monkeys'][suit.value] = pygame.image.load(os.path.join('assets', 'images', 'monkeys', suit.value+'.png'))
+		self.assets['images']['red_x'] = pygame.image.load(os.path.join('assets', 'images', 'redx.png'))
 		self.assets['images']['bet_box_hover'] = pygame.image.load(os.path.join('assets', 'images', 'bet_box_hover.png'))
 		for fruit in Fruit:
 			self.assets['images']['fruits'][fruit.value] = pygame.image.load(os.path.join('assets', 'images', 'fruits', fruit.value + '.png'))
@@ -47,7 +48,7 @@ class Renderer():
 		top_text = ""
 		if board.state in [State.TURN_POPUP, State.PRE_BET, State.BET]:
 			top_text = "Place a bet"
-		elif board.state in [State.PRE_CARD_SELECTION, State.CARD_SELECTION]:
+		elif board.state in [State.PRE_CARD_SELECTION, State.CARD_SELECTION, State.POST_CARD_SELECTION, State.ROUND_ENDED]:
 			top_text = "Play a card"
 		elif board.state == State.GAME_OVER_SCREEN:
 			top_text = "Game over"
@@ -62,9 +63,16 @@ class Renderer():
 		# monkeys
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
+			# monkey image
 			if suit not in board.removed_suits:
 				self.surface.blit(self.assets['images']['monkeys'][suit.value], (x_cord, DEALER_TOP))
+			# red x over monkey if being removed
+			if board.state == State.ROUND_ENDED and suit == board.lowest_suit():
+				if board.wait_time % 30 >= 15: # make it blink
+					self.surface.blit(self.assets['images']['red_x'], (x_cord, DEALER_TOP))
+
 			x_cord += COLUMN_SPACING
+
 
 		# bet box hover
 		x_cord = COLUMN_LEFT
