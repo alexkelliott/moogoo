@@ -62,6 +62,12 @@ class Board():
 	
 
 	def reset(self):
+		# figure out which suit is to be removed
+		top_card_list = [c for c in self.top_card.values() if c]
+		if len(top_card_list) > 0:
+			top_card_list.sort(key=lambda x: x.value)
+			self.removed_suits.append(top_card_list[0].suit)
+
 		# place cards that were top cards back in the deck
 		for suit in Suit:
 			if self.top_card[suit]:
@@ -81,8 +87,12 @@ class Board():
 			player.hand.extend(cards)
 			self.deck = [c for c in self.deck if c not in player.hand] # remove these cards from dealer deck
 
-		# reset turn
-		self.turn = 2
+		# remove the bets under the removed suit for player score
+		for suit in self.removed_suits:
+			for bet in self.bets[suit]:
+				for player in self.players:
+					if bet == player.fruit:
+						player.score -= 1
 
 
 	# returns True/False whether or not there are at least three bets on the board
@@ -97,17 +107,7 @@ class Board():
 
 		if full_cards:
 			top_card_list.sort(key=lambda x: x.value)
-			no_tie = top_card_list[0].value != top_card_list[1].value
-
-			if full_cards and no_tie:
-				self.removed_suits.append(top_card_list[0].suit)
-
-				# remove the bets under the removed suit for player score
-				for bet in self.bets[top_card_list[0].suit]:
-					for player in self.players:
-						if bet == player.fruit:
-							player.score -= 1
-
+			if top_card_list[0].value != top_card_list[1].value: # no tie
 				return True
 
 		return False

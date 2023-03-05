@@ -27,3 +27,4 @@ class Wait(enum.Enum):
 	TURN_POPUP = 100
 	PRE_BET = 100
 	PRE_CARD_SELECTION = 100
+	ROUND_ENDED = 150

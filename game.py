@@ -104,29 +104,31 @@ def update_game(board):
                 board.state = State.TURN_POPUP
                 board.wait_time = Wait.TURN_POPUP.value
 
-    # # Bet => PRE_CARD_SELECTION 
+    # BET => PRE_CARD_SELECTION 
     elif board.state == State.PRE_CARD_SELECTION and board.wait_time == 0:
         board.state = State.CARD_SELECTION
 
     # CARD_SELECTION 
     elif board.state == State.CARD_SELECTION:
         if board.handle_card_selection():
-
             if board.round_complete():
                 if board.game_complete():
                     board.state = State.GAME_OVER_SCREEN
                     return
 
-                board.reset()
+                board.state = State.ROUND_ENDED
+                board.wait_time = Wait.ROUND_ENDED.value
 
             else:
                 board.next_turn()
-            
-            board.state = State.TURN_POPUP
-            board.wait_time = Wait.TURN_POPUP.value
+                board.state = State.TURN_POPUP
+                board.wait_time = Wait.TURN_POPUP.value
 
-    elif board.state == State.ROUND_ENDED:
-        pass
+    # ROUND_ENDED => TURN_POPUP
+    elif board.state == State.ROUND_ENDED and board.wait_time == 0:
+        board.reset()
+        board.state = State.TURN_POPUP
+        board.wait_time = Wait.TURN_POPUP.value
 
     if board.wait_time > 0:
         board.wait_time -= 1

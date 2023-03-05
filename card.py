@@ -5,10 +5,6 @@ class Card():
 		self.rank = rank
 		self.value = value
 		self.is_q = rank == "q"
-		
-	# filename may change through the game with '?' cards
-	def get_filename(self):
-		return str(self.suit.value) + str(self.rank) + ".png" 
 
 
 	def __repr__(self):
