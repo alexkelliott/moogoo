@@ -4,7 +4,7 @@ import random
 import time
 
 from player import Player
-from enums import Fruit, State
+from enums import Fruit, State, Wait
 from board import Board
 from renderer import Renderer
 
@@ -14,10 +14,19 @@ pygame.display.set_caption('Moogoo Monkey')
 
 screen_height = 480
 screen_width = 720
+fps = 60
 surface = pygame.display.set_mode((screen_width, screen_height))
 
 nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
     
+
+# REMOVE THIS
+clock = pygame.time.Clock()
+font = pygame.font.SysFont("Arial", 18)
+def update_fps():
+    fps = str(int(clock.get_fps()))
+    fps_text = font.render(fps, 1, pygame.Color("coral"))
+    return fps_text
 
 def wait(time):
     while time > 0:
@@ -31,19 +40,19 @@ def wait(time):
 
 def init():
     # init renderer
-        renderer = Renderer(surface)
+    renderer = Renderer(surface)
 
-        # init players
-        names = random.sample(nameChoices, 2)
-        players = []
-        players.append(Player("Alex", Fruit.COCONUT, is_human=True))
-        players.append(Player(names[0], Fruit.WATERMELON))
-        players.append(Player(names[1], Fruit.PINEAPPLE))
-        
-        board = Board(players)
-        # init board
+    # init players
+    names = random.sample(nameChoices, 2)
+    players = []
+    players.append(Player("Alex", Fruit.COCONUT, is_human=True))
+    players.append(Player(names[0], Fruit.WATERMELON))
+    players.append(Player(names[1], Fruit.PINEAPPLE))
+    
+    # init board
+    board = Board(players)
 
-        return board, renderer
+    return board, renderer
 
 
 def poll_input(board):
@@ -62,8 +71,8 @@ def poll_input(board):
 
 def update_game(board):
 
-    # PLAYER_TURN_POPUP => PRE_BET, BET
-    if board.state == State.PLAYER_TURN_POPUP and board.wait_time == 0:
+    # TURN_POPUP => PRE_BET, BET
+    if board.state == State.TURN_POPUP and board.wait_time == 0:
         if board.players[board.turn].is_human:
             if board.bet_boxes_full():
                 board.state = State.CARD_SELECTION
@@ -72,9 +81,10 @@ def update_game(board):
         else: # npc
             if board.bet_boxes_full():
                 board.state = State.PRE_CARD_SELECTION
+                board.wait_time = Wait.PRE_CARD_SELECTION.value
             else:
                 board.state = State.PRE_BET
-            board.wait_time = 100
+                board.wait_time = Wait.PRE_BET.value
 
     # PRE_BET => BET
     elif board.state == State.PRE_BET and board.wait_time == 0:
@@ -88,11 +98,11 @@ def update_game(board):
                     board.state = State.CARD_SELECTION
                 else:
                     board.state = State.PRE_CARD_SELECTION
-                    board.wait_time = 100
+                    board.wait_time = Wait.TURN_POPUP.value
             else:
                 board.next_turn()
-                board.state = State.PLAYER_TURN_POPUP
-                board.wait_time = 150
+                board.state = State.TURN_POPUP
+                board.wait_time = Wait.TURN_POPUP.value
 
     # # Bet => PRE_CARD_SELECTION 
     elif board.state == State.PRE_CARD_SELECTION and board.wait_time == 0:
@@ -112,8 +122,11 @@ def update_game(board):
             else:
                 board.next_turn()
             
-            board.state = State.PLAYER_TURN_POPUP
-            board.wait_time = 150
+            board.state = State.TURN_POPUP
+            board.wait_time = Wait.TURN_POPUP.value
+
+    elif board.state == State.ROUND_ENDED:
+        pass
 
     if board.wait_time > 0:
         board.wait_time -= 1
@@ -126,14 +139,12 @@ if __name__ == "__main__":
         poll_input(board)
         update_game(board)
         renderer.render(board)
+        clock.tick(fps)
 
 
 # TODO:
-# Asset manager (in the renderer)
 # Add wait time enums
 # add end round state (wait after final card in round is placed)
 # Fix your time step article https://gafferongames.com/post/fix_your_timestep/
 # Decouple board.py into a gamestate.py
 # - move state machine logic to gamestate
-
-B3b00v#2354

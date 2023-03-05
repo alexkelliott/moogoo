@@ -3,7 +3,7 @@ import pygame
 import time
 import card
 from constants import *
-from enums import Suit, State
+from enums import Suit, State, Wait
 
 
 class Board():
@@ -26,8 +26,8 @@ class Board():
 		self.turn = 2 # {0, 1, 2}. game starts on player 2 for some reason		
 		self.removed_suits = []
 
-		self.state = State.PLAYER_TURN_POPUP
-		self.wait_time = 300
+		self.state = State.TURN_POPUP
+		self.wait_time = Wait.TURN_POPUP.value
 
 		self.hovered_bet = None
 		self.hovered_card = None

@@ -9,7 +9,6 @@ class Renderer():
 		self.surface = surface
 
 		self.assets = {'fonts' : {}, 'images': {'monkeys': {}, 'fruits': {}, 'cards': {}}}
-
 		self.assets['fonts']['font1'] = pygame.font.Font(os.path.join('assets', 'fonts', '8bitOperatorPlus-Regular.ttf'), 28)
 		self.assets['images']['background'] = pygame.image.load(os.path.join('assets', 'images', 'background.png'))
 		self.assets['images']['dealer'] = pygame.image.load(os.path.join('assets', 'images', 'dealer.png'))
@@ -27,8 +26,8 @@ class Renderer():
 
 	def render(self, board):
 		self.draw_board(board)
-		if board.state == State.PLAYER_TURN_POPUP:
-			self.player_turn_popup(board.players[board.turn])
+		if board.state == State.TURN_POPUP:
+			self.turn_popup(board.players[board.turn])
 		elif board.state == State.GAME_OVER_SCREEN:
 			self.game_over_screen(board.final_scores())
 		pygame.display.flip()
@@ -46,7 +45,7 @@ class Renderer():
 
 		# top text
 		top_text = ""
-		if board.state in [State.PLAYER_TURN_POPUP, State.PRE_BET, State.BET]:
+		if board.state in [State.TURN_POPUP, State.PRE_BET, State.BET]:
 			top_text = "Place a bet"
 		elif board.state in [State.PRE_CARD_SELECTION, State.CARD_SELECTION]:
 			top_text = "Play a card"
@@ -124,16 +123,12 @@ class Renderer():
 				x_cord += COLUMN_SPACING
 
 
-	def player_turn_popup(self, player):
+	def turn_popup(self, player):
 		string = "     " + player.name + "'s turn" # space at front to keep box centered when fruit image is added
 
 		# text
 		text1 = self.assets['fonts']['font1'].render(string, True, WHITE)
 		text_rect = text1.get_rect(center=(self.surface.get_width() / 2, self.surface.get_height() / 2))
-
-		# fruit image
-		# filename = player.fruit.value + ".png"
-		# fruit_img = pygame.image.load(os.path.join('assets', 'images', 'fruits', filename))
 		
 		# draw elements on screen
 		background = pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(text_rect.x-10, text_rect.y-5, text_rect.w+20, text_rect.h+10))
