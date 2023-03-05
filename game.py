@@ -8,6 +8,7 @@ from enums import Fruit, State
 from board import Board
 from renderer import Renderer
 
+
 pygame.init()
 pygame.display.set_caption('Moogoo Monkey')
 
@@ -129,6 +130,10 @@ if __name__ == "__main__":
 
 # TODO:
 # Asset manager (in the renderer)
+# Add wait time enums
+# add end round state (wait after final card in round is placed)
 # Fix your time step article https://gafferongames.com/post/fix_your_timestep/
 # Decouple board.py into a gamestate.py
 # - move state machine logic to gamestate
+
+B3b00v#2354

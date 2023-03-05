@@ -1,6 +1,3 @@
-import card
-from enums import Fruit
-
 class Player():
 	def __init__(self, name, fruit, is_human=False):
 		super(Player, self).__init__()

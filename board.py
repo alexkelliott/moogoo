@@ -5,7 +5,6 @@ import card
 from constants import *
 from enums import Suit, State
 
-debug = False
 
 class Board():
 	def __init__(self, players):
@@ -159,16 +158,13 @@ class Board():
 		choice = None
 
 		if player.is_human: # Human player's turn
-
 			new_hovered = self.get_hovered_bet()
 			if new_hovered != self.hovered_bet:
 				self.hovered_bet = new_hovered
 
-
-			if self.mouse_click:
-				if self.hovered_bet:
-					choice = self.hovered_bet
-					self.hovered_bet = None
+			if self.mouse_click and self.hovered_bet:
+				choice = self.hovered_bet
+				self.hovered_bet = None
 
 
 		else: # computer's turn
@@ -203,12 +199,9 @@ class Board():
 
 			self.hovered_card = self.get_hovered_card()
 
-			if self.mouse_click:
-				print("Clicked!")
-				if self.hovered_card:
-					print("Clicked a card!")
-					choice = self.hovered_card
-					self.hovered_card = None
+			if self.mouse_click and self.hovered_card:
+				choice = self.hovered_card
+				self.hovered_card = None
 							
 		else: # computer's turn
 			choice = random.choice(player.hand)
@@ -226,7 +219,7 @@ class Board():
 			# if the card is '?' assign it a value
 			if choice.rank == 'q':
 				new_val = random.randint(1,7)
-				choice.rank = new_val
+				choice.rank = str(new_val)
 				choice.value = new_val
 
 			self.top_card[choice.suit] = choice
