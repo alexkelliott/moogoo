@@ -57,13 +57,10 @@ def init():
 
 def poll_input(board):
     for ev in pygame.event.get():
-        if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-            board.mouse_click = True
-        else:
-            board.mouse_click = False
-
         if ev.type == pygame.QUIT:
             pygame.quit()
+
+        board.mouse_click = (ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1)
 
     mouse = pygame.mouse.get_pos()
     board.mouse_coords = {'x': mouse[0], 'y': mouse[1]}
