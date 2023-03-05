@@ -2,7 +2,8 @@ import random
 import pygame
 import time
 import card
-from enums import Suit
+from constants import *
+from enums import Suit, State
 
 debug = False
 
@@ -25,6 +26,38 @@ class Board():
 		self.players = players
 		self.turn = 2 # {0, 1, 2}. game starts on player 2 for some reason		
 		self.removed_suits = []
+
+		self.state = State.PLAYER_TURN_POPUP
+		self.wait_time = 300
+
+		self.hovered_bet = None
+		self.hovered_card = None
+		self.mouse_coords = {'x':  -1, 'y': -1}
+		self.mouse_click = False
+
+		# intialize the boundary boxes for selecting bets
+		self.bet_boundaries = {}
+		x_cord = COLUMN_LEFT
+		for suit in Suit:
+			self.bet_boundaries[suit] = {
+				"left"  : x_cord,
+				"right" : x_cord + BET_BOX_WIDTH,
+				"top"   : BET_BOX_TOP,
+				"bottom": BET_BOX_TOP + BET_BOX_WIDTH,
+			}
+			x_cord += COLUMN_SPACING
+
+		# intialize the boundary boxes for selecting cards
+		self.card_boundaries = {}
+		x_cord = PLAYER_FIRST_CARD_LEFT
+		for i in range(5): # 5 cards
+			self.card_boundaries[i] = {
+				"left"  : x_cord,
+				"right" : x_cord + CARD_SIZE[0],
+				"top"   : PLAYER_FIRST_CARD_TOP,
+				"bottom": PLAYER_FIRST_CARD_TOP + CARD_SIZE[1],
+			}
+			x_cord += COLUMN_SPACING
 
 		self.reset()
 	
@@ -55,7 +88,7 @@ class Board():
 
 	# returns True/False whether or not there are at least three bets on the board
 	def three_bets(self):
-		return sum([len(self.bets[suit]) for suit in Suit]) >= 3
+		return sum([len(self.bets[suit]) for suit in Suit]) > 3
 
 
 	# return's lowest monkey if the round is complete
@@ -107,107 +140,98 @@ class Board():
 		return self.players[self.turn]
 
 
-	def get_hovered_bet(self, bet_boundaries):
-		mouse = pygame.mouse.get_pos()
+	def bet_boxes_full(self):
+		return all([len(self.bets[suit]) == 4 for suit in Suit if suit not in self.removed_suits])
 
+	def get_hovered_bet(self):
 		for suit in Suit:
 			if suit not in self.removed_suits and len(self.bets[suit]) < 4:
-				bound = bet_boundaries[suit]
-				if bound["left"] <= mouse[0] <= bound["right"] and bound["top"] <= mouse[1] <= bound["bottom"]:
+				bound = self.bet_boundaries[suit]
+				if bound["left"] <= self.mouse_coords['x'] <= bound["right"] and bound["top"] <= self.mouse_coords['y'] <= bound["bottom"]:
 					return suit
 
 		return None
 
 
-	def handle_bet_selection(self, renderer):
-
-		# if the bet boxes are all full, skip to chosing a card
-		if all([len(self.bets[suit]) == 4 for suit in Suit if suit not in self.removed_suits]):
-			return
+	def handle_bet_selection(self):
 
 		player = self.players[self.turn]
 		choice = None
 
 		if player.is_human: # Human player's turn
-			while not choice:
-				new_hovered = self.get_hovered_bet(renderer.bet_boundaries)
-				if new_hovered != renderer.hovered_bet:
-					renderer.hovered_bet = new_hovered
-					renderer.render(self)
 
-				for ev in pygame.event.get():
-					if ev.type == pygame.MOUSEBUTTONUP and ev.button == 1:
-						if renderer.hovered_bet:
-							choice = renderer.hovered_bet
-							renderer.hovered_bet = None
-							break
-					if ev.type == pygame.QUIT:
-						pygame.quit()
+			new_hovered = self.get_hovered_bet()
+			if new_hovered != self.hovered_bet:
+				self.hovered_bet = new_hovered
+
+
+			if self.mouse_click:
+				if self.hovered_bet:
+					choice = self.hovered_bet
+					self.hovered_bet = None
+
 
 		else: # computer's turn
 			# Place a bet at random
 			available = [suit for suit in self.bets if suit not in self.removed_suits and len(self.bets[suit]) < 4] # find spots with < 4 bets
 			choice = random.choice(available)
 
-		self.bets[choice].append(player.fruit)
-		player.score += 1
+		if choice:
+			self.bets[choice].append(player.fruit)
+			player.score += 1
+		
 		return choice
 
 
-	def get_hovered_card(self, card_boundaries):
-		mouse = pygame.mouse.get_pos()
+	def get_hovered_card(self):
 		hand = self.players[self.turn].hand
 
 		for i in range(len(hand)):
 			if hand[i]:
-				bound = card_boundaries[i]
-				if bound["left"] <= mouse[0] <= bound["right"] and bound["top"] <= mouse[1] <= bound["bottom"]:
+				bound = self.card_boundaries[i]
+				if bound["left"] <= self.mouse_coords['x'] <= bound["right"] and bound["top"] <= self.mouse_coords['y'] <= bound["bottom"]:
 					return hand[i]
 
 		return None
 
 
-	def handle_card_selection(self, renderer):
+	def handle_card_selection(self):
 		player = self.players[self.turn]
 		choice = None
 
 		if player.is_human:
-			while not choice:
-				new_hovered = self.get_hovered_card(renderer.card_boundaries)
-				if new_hovered != renderer.hovered_card:
-					renderer.hovered_card = new_hovered
-					renderer.render(self)
 
-				for ev in pygame.event.get():
-					if ev.type == pygame.MOUSEBUTTONUP and ev.button == 1:
-						if renderer.hovered_card:
-							choice = renderer.hovered_card
-							renderer.hovered_card = None
-							break
-					if ev.type == pygame.QUIT:
-						pygame.quit()
+			self.hovered_card = self.get_hovered_card()
 
+			if self.mouse_click:
+				print("Clicked!")
+				if self.hovered_card:
+					print("Clicked a card!")
+					choice = self.hovered_card
+					self.hovered_card = None
+							
 		else: # computer's turn
 			choice = random.choice(player.hand)
 
-		# return previous top card to the deck
-		if self.top_card[choice.suit]:
-			# make it a "?" again if it was before
-			if self.top_card[choice.suit].is_q:
-				self.top_card[choice.suit].rank = "q"
-				self.top_card[choice.suit].value = 0
+		if choice:
+			# return previous top card to the deck
+			if self.top_card[choice.suit]:
+				# make it a "?" again if it was before
+				if self.top_card[choice.suit].is_q:
+					self.top_card[choice.suit].rank = "q"
+					self.top_card[choice.suit].value = 0
 
-			self.deck.append(self.top_card[choice.suit])
+				self.deck.append(self.top_card[choice.suit])
 
-		# if the card is '?' assign it a value
-		if choice.rank == 'q':
-			new_val = random.randint(1,7)
-			choice.rank = new_val
-			choice.value = new_val
+			# if the card is '?' assign it a value
+			if choice.rank == 'q':
+				new_val = random.randint(1,7)
+				choice.rank = new_val
+				choice.value = new_val
 
-		self.top_card[choice.suit] = choice
-		player.hand.remove(choice)
-		self.get_card(player)
+			self.top_card[choice.suit] = choice
+			player.hand.remove(choice)
+			self.get_card(player)
 
 		return choice
 

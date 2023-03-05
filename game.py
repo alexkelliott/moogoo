@@ -4,7 +4,7 @@ import random
 import time
 
 from player import Player
-from enums import Fruit
+from enums import Fruit, State
 from board import Board
 from renderer import Renderer
 
@@ -39,58 +39,96 @@ def init():
         players.append(Player(names[0], Fruit.WATERMELON))
         players.append(Player(names[1], Fruit.PINEAPPLE))
         
-        # init board
         board = Board(players)
+        # init board
 
         return board, renderer
 
 
+def poll_input(board):
+    for ev in pygame.event.get():
+        if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+            board.mouse_click = True
+        else:
+            board.mouse_click = False
+
+        if ev.type == pygame.QUIT:
+            pygame.quit()
+
+    mouse = pygame.mouse.get_pos()
+    board.mouse_coords = {'x': mouse[0], 'y': mouse[1]}
+
+
+def update_game(board):
+
+    # PLAYER_TURN_POPUP => PRE_BET, BET
+    if board.state == State.PLAYER_TURN_POPUP and board.wait_time == 0:
+        if board.players[board.turn].is_human:
+            if board.bet_boxes_full():
+                board.state = State.CARD_SELECTION
+            else:
+                board.state = State.BET
+        else: # npc
+            if board.bet_boxes_full():
+                board.state = State.PRE_CARD_SELECTION
+            else:
+                board.state = State.PRE_BET
+            board.wait_time = 100
+
+    # PRE_BET => BET
+    elif board.state == State.PRE_BET and board.wait_time == 0:
+        board.state = State.BET
+
+    # BET
+    elif board.state == State.BET:
+        if board.handle_bet_selection():
+            if board.three_bets():
+                if board.players[board.turn].is_human:
+                    board.state = State.CARD_SELECTION
+                else:
+                    board.state = State.PRE_CARD_SELECTION
+                    board.wait_time = 100
+            else:
+                board.next_turn()
+                board.state = State.PLAYER_TURN_POPUP
+                board.wait_time = 150
+
+    # # Bet => PRE_CARD_SELECTION 
+    elif board.state == State.PRE_CARD_SELECTION and board.wait_time == 0:
+        board.state = State.CARD_SELECTION
+
+    # CARD_SELECTION 
+    elif board.state == State.CARD_SELECTION:
+        if board.handle_card_selection():
+
+            if board.round_complete():
+                if board.game_complete():
+                    board.state = State.GAME_OVER_SCREEN
+                    return
+
+                board.reset()
+
+            else:
+                board.next_turn()
+            
+            board.state = State.PLAYER_TURN_POPUP
+            board.wait_time = 150
+
+    if board.wait_time > 0:
+        board.wait_time -= 1
+
+
 if __name__ == "__main__":
     board, renderer = init()
-    
-    while not board.game_complete():
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
-            break
-
-        board.reset()
-        renderer.render(board)
-        wait(500)
-
-        while not board.round_complete():
-            renderer.top_text = "Place a bet"
-            renderer.render(board)
-            renderer.player_turn_popup(board.players[board.turn])
-            wait(500)
-            renderer.render(board) # erase turn popup
-
-            wait(100)
-            board.handle_bet_selection(renderer)
-            if board.three_bets():
-                renderer.top_text = "Play a card"
-            renderer.render(board)
-
-            # only wait for card selection if its a computer's turn
-            if board.turn:
-                wait(350)
-
-            # card selection if enough bets are on the table
-            if board.three_bets():
-                board.handle_card_selection(renderer)
-                renderer.render(board)
-                wait(400)
-
-            next_player = board.next_turn()
-
-    renderer.top_text = "Game over"
-    renderer.render(board)
-    wait(1000)
-    renderer.game_over_screen(board.final_scores())
 
     while True:
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
-            break
+        poll_input(board)
+        update_game(board)
+        renderer.render(board)
 
-    pygame.quit()
-        
+
+# TODO:
+# Asset manager (in the renderer)
+# Fix your time step article https://gafferongames.com/post/fix_your_timestep/
+# Decouple board.py into a gamestate.py
+# - move state machine logic to gamestate

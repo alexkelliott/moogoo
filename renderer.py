@@ -1,60 +1,27 @@
 import pygame
 import os
-from enums import Fruit, Suit
+from constants import *
+from enums import Fruit, Suit, State
 
-# positional constants
-DEALER_LEFT = 10
-DEALER_TOP = 60
-SCORE_BAY_FRUIT_TOP = 322
-BET_BOX_TOP = 150
-BET_OFFSET = 2
-BET_BOX_WIDTH = 80
-CARD_BAY_TOP = 240
-CARD_SIZE = (80, 106)
-PLAYER_FIRST_CARD_TOP = 360
-PLAYER_FIRST_CARD_LEFT = 175
-COLUMN_LEFT = 125
-COLUMN_SPACING = 100
-
-WHITE = (255, 255, 255)
-DARK_GREEN = (0, 104, 76)
 
 class Renderer():
 	def __init__(self, surface):
 		self.surface = surface
 		self.font1 = pygame.font.Font(os.path.join('assets', 'fonts', '8bitOperatorPlus-Regular.ttf'), 28)
-		self.hovered_bet = None # consider moving this to board
-		self.hovered_card = None # consider moving this to board
-		self.top_text = ""
-
-		# intialize the boundary boxes for selecting bets
-		self.bet_boundaries = {}
-		x_cord = COLUMN_LEFT
-		for suit in Suit:
-			self.bet_boundaries[suit] = {
-				"left"  : x_cord,
-				"right" : x_cord + BET_BOX_WIDTH,
-				"top"   : BET_BOX_TOP,
-				"bottom": BET_BOX_TOP + BET_BOX_WIDTH,
-			}
-			x_cord += COLUMN_SPACING
-
-		# intialize the boundary boxes for selecting cards
-		self.card_boundaries = {}
-		x_cord = PLAYER_FIRST_CARD_LEFT
-		for i in range(5): # 5 cards
-			self.card_boundaries[i] = {
-				"left"  : x_cord,
-				"right" : x_cord + CARD_SIZE[0],
-				"top"   : PLAYER_FIRST_CARD_TOP,
-				"bottom": PLAYER_FIRST_CARD_TOP + CARD_SIZE[1],
-			}
-			x_cord += COLUMN_SPACING
 
 
 	def render(self, board):
+		self.draw_board(board)
+		if board.state == State.PLAYER_TURN_POPUP:
+			self.player_turn_popup(board.players[board.turn])
+		elif board.state == State.GAME_OVER_SCREEN:
+			self.game_over_screen(board.final_scores())
+		pygame.display.flip()
+
+
+	def draw_board(self, board):
 		# mouse
-		if self.hovered_bet or self.hovered_card:
+		if board.hovered_bet or board.hovered_card:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 		else:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -64,7 +31,15 @@ class Renderer():
 		self.surface.blit(background, (0,0))
 
 		# top text
-		text1 = self.font1.render(self.top_text, True, WHITE)
+		top_text = ""
+		if board.state in [State.PLAYER_TURN_POPUP, State.PRE_BET, State.BET]:
+			top_text = "Place a bet"
+		elif board.state in [State.PRE_CARD_SELECTION, State.CARD_SELECTION]:
+			top_text = "Play a card"
+		elif board.state == State.GAME_OVER_SCREEN:
+			top_text = "Game over"
+
+		text1 = self.font1.render(top_text, True, WHITE)
 		text_rect = text1.get_rect(center=(self.surface.get_width() / 2, 30))
 		self.surface.blit(text1, text_rect)
 
@@ -84,7 +59,7 @@ class Renderer():
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
 			if suit not in board.removed_suits:
-				if suit == self.hovered_bet:
+				if suit == board.hovered_bet:
 					for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
 						bet_box = pygame.image.load(os.path.join('assets', 'images', "bet_box_hover.png"))
 						self.surface.blit(bet_box, coords)
@@ -138,13 +113,11 @@ class Renderer():
 				player_card = pygame.image.load(os.path.join('assets', 'images', "cards", card.get_filename()))
 				self.surface.blit(player_card, (x_cord, PLAYER_FIRST_CARD_TOP))
 
-				if card == self.hovered_card:
+				if card == board.hovered_card:
 					card_hover = pygame.image.load(os.path.join('assets', 'images', "card_hover.png"))
 					self.surface.blit(card_hover, (x_cord, PLAYER_FIRST_CARD_TOP))
 
 				x_cord += COLUMN_SPACING
-
-		pygame.display.flip()
 
 
 	def player_turn_popup(self, player):
@@ -162,7 +135,6 @@ class Renderer():
 		background = pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(text_rect.x-10, text_rect.y-5, text_rect.w+20, text_rect.h+10))
 		self.surface.blit(fruit_img, (text_rect.x+5, text_rect.y))
 		self.surface.blit(text1, text_rect)
-		pygame.display.flip()
 
 
 	def game_over_screen(self, players):
@@ -177,7 +149,3 @@ class Renderer():
 			text1 = self.font1.render(string, True, WHITE)
 			text_rect = text1.get_rect(center=(self.surface.get_width() / 2, (self.surface.get_height() / 2) + y_offset[i]))
 			self.surface.blit(text1, text_rect)
-
-		pygame.display.flip()
-
-
