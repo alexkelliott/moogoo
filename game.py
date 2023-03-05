@@ -90,7 +90,7 @@ def update_game(board):
     elif board.state == State.PRE_BET and board.wait_time == 0:
         board.state = State.BET
 
-    # BET
+    # BET => PRE_CARD_SELECTION, CARD_SELECTION, TURN_POPUP
     elif board.state == State.BET:
         if board.handle_bet_selection():
             if board.three_bets():
@@ -104,11 +104,11 @@ def update_game(board):
                 board.state = State.TURN_POPUP
                 board.wait_time = Wait.TURN_POPUP.value
 
-    # BET => PRE_CARD_SELECTION 
+    # PRE_CARD_SELECTION => CARD_SELECTION 
     elif board.state == State.PRE_CARD_SELECTION and board.wait_time == 0:
         board.state = State.CARD_SELECTION
 
-    # CARD_SELECTION 
+    # CARD_SELECTION => TURN_POPUP, ROUND_ENDED, GAME_OVER_SCREEN
     elif board.state == State.CARD_SELECTION:
         if board.handle_card_selection():
             if board.round_complete():
@@ -145,8 +145,5 @@ if __name__ == "__main__":
 
 
 # TODO:
-# Add wait time enums
-# add end round state (wait after final card in round is placed)
-# Fix your time step article https://gafferongames.com/post/fix_your_timestep/
 # Decouple board.py into a gamestate.py
 # - move state machine logic to gamestate
