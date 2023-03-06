@@ -7,7 +7,8 @@ from enums import Suit, State, Wait
 
 
 class Board():
-	def __init__(self, players):
+	def __init__(self, players, game_state):
+		self.game_state = game_state
 		self.deck = []
 		for suit in Suit:
 			for value in range(8):
@@ -25,18 +26,6 @@ class Board():
 		self.players = players
 		self.turn = 2 # {0, 1, 2}. game starts on player 2 for some reason		
 		self.removed_suits = []
-		self.killed_suit = None # suit of monkey currently being removed
-
-		self.state = State.TURN_POPUP
-		self.wait_time = Wait.TURN_POPUP.value
-
-		self.hovered_bet = None
-		self.hovered_card = None
-		self.pointer = False
-		self.mouse_coords = {'x':  -1, 'y': -1}
-		self.mouse_click = False
-		self.return_state = None # state to return to after visiting settings menu
-		self.music_on = False
 
 		# intialize the boundary boxes for selecting bets
 		self.bet_boundaries = {}
@@ -154,11 +143,12 @@ class Board():
 	def bet_boxes_full(self):
 		return all([len(self.bets[suit]) == 4 for suit in Suit if suit not in self.removed_suits])
 
+
 	def get_hovered_bet(self):
 		for suit in Suit:
 			if suit not in self.removed_suits and len(self.bets[suit]) < 4:
 				bound = self.bet_boundaries[suit]
-				if bound["left"] <= self.mouse_coords['x'] <= bound["right"] and bound["top"] <= self.mouse_coords['y'] <= bound["bottom"]:
+				if bound["left"] <= self.game_state.mouse_coords['x'] <= bound["right"] and bound["top"] <= self.game_state.mouse_coords['y'] <= bound["bottom"]:
 					return suit
 
 		return None
@@ -170,14 +160,10 @@ class Board():
 		choice = None
 
 		if player.is_human: # Human player's turn
-			new_hovered = self.get_hovered_bet()
-			if new_hovered != self.hovered_bet:
-				self.hovered_bet = new_hovered
-
-			if self.mouse_click and self.hovered_bet:
-				choice = self.hovered_bet
-				self.hovered_bet = None
-
+			self.game_state.hovered_bet = self.get_hovered_bet()
+			if self.game_state.mouse_click and self.game_state.hovered_bet:
+				choice = self.game_state.hovered_bet
+				self.game_state.hovered_bet = None
 
 		else: # computer's turn
 			# Place a bet at random
@@ -197,7 +183,7 @@ class Board():
 		for i in range(len(hand)):
 			if hand[i]:
 				bound = self.card_boundaries[i]
-				if bound["left"] <= self.mouse_coords['x'] <= bound["right"] and bound["top"] <= self.mouse_coords['y'] <= bound["bottom"]:
+				if bound["left"] <= self.game_state.mouse_coords['x'] <= bound["right"] and bound["top"] <= self.game_state.mouse_coords['y'] <= bound["bottom"]:
 					return hand[i]
 
 		return None
@@ -208,12 +194,10 @@ class Board():
 		choice = None
 
 		if player.is_human:
-
-			self.hovered_card = self.get_hovered_card()
-
-			if self.mouse_click and self.hovered_card:
-				choice = self.hovered_card
-				self.hovered_card = None
+			self.game_state.hovered_card = self.get_hovered_card()
+			if self.game_state.mouse_click and self.game_state.hovered_card:
+				choice = self.game_state.hovered_card
+				self.game_state.hovered_card = None
 							
 		else: # computer's turn
 			choice = random.choice(player.hand)

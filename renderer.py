@@ -3,10 +3,13 @@ import os
 from constants import *
 from enums import Fruit, Suit, State
 
+pygame.display.set_caption('Moogoo Monkey')
+screen_height = 480
+screen_width = 720
 
 class Renderer():
-	def __init__(self, surface):
-		self.surface = surface
+	def __init__(self):
+		self.surface = pygame.display.set_mode((screen_width, screen_height))
 
 		self.assets = {'fonts' : {}, 'images': {'monkeys': {}, 'fruits': {}, 'cards': {}}}
 		self.assets['fonts']['font1'] = pygame.font.Font(os.path.join('assets', 'fonts', '8bitOperatorPlus-Regular.ttf'), 28)
@@ -26,20 +29,22 @@ class Renderer():
 		self.assets['images']['card_hover'] = pygame.image.load(os.path.join('assets', 'images', 'card_hover.png'))
 
 
-	def render(self, board):
-		self.draw_board(board)
-		if board.state == State.TURN_POPUP:
-			self.turn_popup(board.players[board.turn])
-		elif board.state == State.GAME_OVER_SCREEN:
-			self.game_over_screen(board.final_scores())
-		elif board.state == State.SETTINGS:
-			self.settings_screen(board)
+	def render(self, game_state):
+		self.draw_board(game_state)
+		if game_state.state == State.TURN_POPUP:
+			self.turn_popup(game_state.board.players[game_state.board.turn])
+		elif game_state.state == State.GAME_OVER_SCREEN:
+			self.game_over_screen(game_state.board.final_scores())
+		elif game_state.state == State.SETTINGS:
+			self.settings_screen(game_state)
 		pygame.display.flip()
 
 
-	def draw_board(self, board):
+	def draw_board(self, game_state):
+		board = game_state.board
+
 		# mouse
-		if board.hovered_bet or board.hovered_card or board.pointer:
+		if game_state.hovered_bet or game_state.hovered_card or game_state.pointer:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 		else:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -52,11 +57,11 @@ class Renderer():
 
 		# top text
 		top_text = ""
-		if board.state in [State.TURN_POPUP, State.PRE_BET, State.BET]:
+		if game_state.state in [State.TURN_POPUP, State.PRE_BET, State.BET]:
 			top_text = "Place a bet"
-		elif board.state in [State.PRE_CARD_SELECTION, State.CARD_SELECTION, State.POST_CARD_SELECTION, State.ROUND_ENDED]:
+		elif game_state.state in [State.PRE_CARD_SELECTION, State.CARD_SELECTION, State.POST_CARD_SELECTION, State.ROUND_ENDED]:
 			top_text = "Play a card"
-		elif board.state == State.GAME_OVER_SCREEN:
+		elif game_state.state == State.GAME_OVER_SCREEN:
 			top_text = "Game over"
 
 		text1 = self.assets['fonts']['font1'].render(top_text, True, WHITE)
@@ -73,8 +78,8 @@ class Renderer():
 			if suit not in board.removed_suits:
 				self.surface.blit(self.assets['images']['monkeys'][suit.value], (x_cord, DEALER_TOP))
 			# red x over monkey if being removed
-			if board.state == State.ROUND_ENDED and suit == board.lowest_suit():
-				if board.wait_time % 30 >= 15: # make it blink
+			if game_state.state == State.ROUND_ENDED and suit == board.lowest_suit():
+				if game_state.wait_time % 30 >= 15: # make it blink
 					self.surface.blit(self.assets['images']['red_x'], (x_cord, DEALER_TOP))
 
 			x_cord += COLUMN_SPACING
@@ -83,7 +88,7 @@ class Renderer():
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
 			if suit not in board.removed_suits:
-				if suit == board.hovered_bet:
+				if suit == game_state.hovered_bet:
 					for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
 						self.surface.blit(self.assets['images']['bet_box_hover'], coords)
 			x_cord += COLUMN_SPACING
@@ -129,7 +134,7 @@ class Renderer():
 			for card in board.players[0].hand:
 				self.surface.blit(self.assets['images']['cards'][card.suit.value + card.rank], (x_cord, PLAYER_FIRST_CARD_TOP))
 
-				if card == board.hovered_card:
+				if card == game_state.hovered_card:
 					self.surface.blit(self.assets['images']['card_hover'], (x_cord, PLAYER_FIRST_CARD_TOP))
 
 				x_cord += COLUMN_SPACING
@@ -162,7 +167,7 @@ class Renderer():
 			self.surface.blit(text1, text_rect)
 
 
-	def settings_screen(self, board):
+	def settings_screen(self, game_state):
 		pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(100, 100, 520, 280))
 
 		# settings text
@@ -172,7 +177,7 @@ class Renderer():
 
 		# music button
 		pygame.draw.rect(self.surface, WHITE, pygame.Rect(120, 150, 20, 20))
-		if board.music_on:
+		if game_state.music_on:
 			pygame.draw.rect(self.surface, BLACK, pygame.Rect(122, 152, 16, 16))
 
 		# music text
