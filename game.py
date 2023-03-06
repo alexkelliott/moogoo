@@ -2,6 +2,7 @@
 import pygame
 import random
 import time
+import os
 
 from constants import *
 from player import Player
@@ -21,7 +22,6 @@ surface = pygame.display.set_mode((screen_width, screen_height))
 
 nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
 
-
 def init():
     # init renderer
     renderer = Renderer(surface)
@@ -35,6 +35,13 @@ def init():
     
     # init board
     board = Board(players)
+
+    # init mixer
+    pygame.mixer.init()
+    pygame.mixer.music.load(os.path.join('assets', 'audio', 'soundtrack.mp3'))
+    pygame.mixer.music.set_volume(0.7)
+    pygame.mixer.music.play()
+    pygame.mixer.music.pause()
 
     return board, renderer
 
@@ -131,7 +138,13 @@ def update_game(board):
     if MUSIC_BUTTON_LEFT <= board.mouse_coords['x'] <= MUSIC_BUTTON_LEFT + MUSIC_BUTTON_WIDTH and MUSIC_BUTTON_TOP <= board.mouse_coords['y'] <= MUSIC_BUTTON_TOP + MUSIC_BUTTON_WIDTH:
         board.pointer = True
         if board.mouse_click:
-            board.music_on = not board.music_on
+            if board.music_on:
+                board.music_on = False
+                pygame.mixer.music.pause()
+            else:
+                board.music_on = True
+                pygame.mixer.music.unpause()
+
             board.mouse_click = False
 
     # Test if done button in settings is clicked

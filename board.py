@@ -36,7 +36,7 @@ class Board():
 		self.mouse_coords = {'x':  -1, 'y': -1}
 		self.mouse_click = False
 		self.return_state = None # state to return to after visiting settings menu
-		self.music_on = True
+		self.music_on = False
 
 		# intialize the boundary boxes for selecting bets
 		self.bet_boundaries = {}
