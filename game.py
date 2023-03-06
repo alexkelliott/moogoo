@@ -10,14 +10,26 @@ fps = 60
 
 
 def poll_input(game_state):
+    game_state.mouse_click = False
+
     for ev in pygame.event.get():
         if ev.type == pygame.QUIT:
             pygame.quit()
 
-        game_state.mouse_click = (ev.type == pygame.MOUSEBUTTONUP and ev.button == 1)
+        if ev.type == pygame.MOUSEBUTTONUP and ev.button == 1:
+            game_state.mouse_click = True
+            game_state.mouse_down = False
+
+        if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+            game_state.mouse_down = True
+
 
     mouse = pygame.mouse.get_pos()
     game_state.mouse_coords = {'x': mouse[0], 'y': mouse[1]}
+
+
+def mouse_in(mouse_coords, left, width, top, height):
+    return left <= mouse_coords['x'] <= left + width and top <= mouse_coords['y'] <= top + height
 
 
 def update_game(game_state):
@@ -90,35 +102,39 @@ def update_game(game_state):
         game_state.state = State.TURN_POPUP
         game_state.wait_time = Wait.TURN_POPUP.value
 
-
     # Test if settings button is clicked
-    if SETTINGS_BUTTON_LEFT <= game_state.mouse_coords['x'] <= SETTINGS_BUTTON_LEFT + SETTINGS_BUTTON_WIDTH and SETTINGS_BUTTON_TOP <= game_state.mouse_coords['y'] <= SETTINGS_BUTTON_TOP + SETTINGS_BUTTON_WIDTH:
+    if mouse_in(game_state.mouse_coords, SETTINGS_BUTTON_LEFT, SETTINGS_BUTTON_WIDTH, SETTINGS_BUTTON_TOP, SETTINGS_BUTTON_WIDTH):
         game_state.pointer = True
         if game_state.mouse_click and game_state.state != State.SETTINGS:
             game_state.return_state = game_state.state
             game_state.state = State.SETTINGS
 
     # Test if music button in settings is clicked
-    if MUSIC_BUTTON_LEFT <= game_state.mouse_coords['x'] <= MUSIC_BUTTON_LEFT + MUSIC_BUTTON_WIDTH and MUSIC_BUTTON_TOP <= game_state.mouse_coords['y'] <= MUSIC_BUTTON_TOP + MUSIC_BUTTON_WIDTH:
+    if mouse_in(game_state.mouse_coords, MUSIC_BUTTON_LEFT, MUSIC_BUTTON_WIDTH, MUSIC_BUTTON_TOP, MUSIC_BUTTON_WIDTH):
         game_state.pointer = True
         if game_state.mouse_click:
             if game_state.music_on:
-                game_state.music_on = False
                 pygame.mixer.music.pause()
             else:
-                game_state.music_on = True
                 pygame.mixer.music.unpause()
 
-            game_state.mouse_click = False
+            game_state.music_on = not game_state.music_on
+
+    # volume slider
+    vol_left = VOL_SLIDER_LEFT + game_state.volume * (VOL_SLIDER_WIDTH)
+    if mouse_in(game_state.mouse_coords, VOL_SLIDER_LEFT, VOL_SLIDER_WIDTH, VOL_SLIDER_TOP-10, 25):
+        game_state.pointer = True
+        if game_state.mouse_down:
+            game_state.volume = (game_state.mouse_coords['x']-5 - VOL_SLIDER_LEFT) / VOL_SLIDER_WIDTH
+            pygame.mixer.music.set_volume(game_state.volume)
 
     # Test if done button in settings is clicked
     if game_state.state == State.SETTINGS:
-        if EXIT_SETTINGS_BUTTON_LEFT <= game_state.mouse_coords['x'] <= EXIT_SETTINGS_BUTTON_LEFT + EXIT_SETTINGS_BUTTON_WIDTH and EXIT_SETTINGS_BUTTON_TOP <= game_state.mouse_coords['y'] <= EXIT_SETTINGS_BUTTON_TOP + EXIT_SETTINGS_BUTTON_WIDTH:
+        if mouse_in(game_state.mouse_coords, EXIT_SETTINGS_BUTTON_LEFT, EXIT_SETTINGS_BUTTON_WIDTH, EXIT_SETTINGS_BUTTON_TOP, EXIT_SETTINGS_BUTTON_HEIGHT):
             game_state.pointer = True
             if game_state.mouse_click:
                 game_state.state = game_state.return_state
                 game_state.return_state = None
-                game_state.mouse_click = False
 
     # decrement wait time if game is not paused
     if game_state.wait_time > 0 and game_state.state != State.SETTINGS:
@@ -137,3 +153,7 @@ if __name__ == "__main__":
         update_game(game_state)
         game_state.renderer.render(game_state)
         clock.tick(fps)
+
+
+# TODO:
+#   -make function to detect if mouse is in a certain bound

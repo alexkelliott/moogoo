@@ -27,12 +27,13 @@ class Game_State():
 		self.board = Board(players, self)
 
 		# init mixer
+		self.music_on = False
+		self.volume = 0.75 # [0, 1]
 		pygame.mixer.init()
 		pygame.mixer.music.load(os.path.join('assets', 'audio', 'soundtrack.mp3'))
-		pygame.mixer.music.set_volume(0.7)
+		pygame.mixer.music.set_volume(self.volume)
 		pygame.mixer.music.play()
 		pygame.mixer.music.pause()
-		self.music_on = False
 
 		# init state
 		self.state = State.TURN_POPUP
@@ -42,6 +43,7 @@ class Game_State():
 		# init mouse states
 		self.pointer = False
 		self.mouse_coords = {'x':  -1, 'y': -1}
-		self.mouse_click = False
+		self.mouse_click = False # mouse down then up
+		self.mouse_down = False
 		self.hovered_bet = None
 		self.hovered_card = None

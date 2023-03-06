@@ -176,13 +176,24 @@ class Renderer():
 		self.surface.blit(text1, text_rect)
 
 		# music button
-		pygame.draw.rect(self.surface, WHITE, pygame.Rect(120, 150, 20, 20))
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(MUSIC_BUTTON_LEFT, MUSIC_BUTTON_TOP, MUSIC_BUTTON_WIDTH, MUSIC_BUTTON_WIDTH))
 		if game_state.music_on:
-			pygame.draw.rect(self.surface, BLACK, pygame.Rect(122, 152, 16, 16))
+			pygame.draw.rect(self.surface, BLACK, pygame.Rect(MUSIC_BUTTON_LEFT+2, MUSIC_BUTTON_TOP+2, MUSIC_BUTTON_WIDTH-4, MUSIC_BUTTON_WIDTH-4))
 
 		# music text
 		text2 = self.assets['fonts']['font1'].render("Music", True, WHITE)
-		self.surface.blit(text2, (160, 135))
+		self.surface.blit(text2, (115, 135))
+
+		# volume text
+		text2 = self.assets['fonts']['font1'].render("Volume", True, WHITE)
+		self.surface.blit(text2, (115, 175))
+
+		# volume slider bar
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(VOL_SLIDER_LEFT, VOL_SLIDER_TOP, VOL_SLIDER_WIDTH, VOL_SLIDER_HEIGHT))
+
+		# volume slider handle
+		left_pos = VOL_SLIDER_LEFT + game_state.volume * (VOL_SLIDER_WIDTH)
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(left_pos, 190, 10, 25))
 
 		# done button
 		pygame.draw.rect(self.surface, WHITE, pygame.Rect(EXIT_SETTINGS_BUTTON_LEFT, EXIT_SETTINGS_BUTTON_TOP, EXIT_SETTINGS_BUTTON_WIDTH, EXIT_SETTINGS_BUTTON_HEIGHT))
