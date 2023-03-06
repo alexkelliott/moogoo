@@ -11,6 +11,7 @@ class Renderer():
 		self.assets = {'fonts' : {}, 'images': {'monkeys': {}, 'fruits': {}, 'cards': {}}}
 		self.assets['fonts']['font1'] = pygame.font.Font(os.path.join('assets', 'fonts', '8bitOperatorPlus-Regular.ttf'), 28)
 		self.assets['images']['background'] = pygame.image.load(os.path.join('assets', 'images', 'background.png'))
+		self.assets['images']['cog'] = pygame.image.load(os.path.join('assets', 'images', 'cog.png'))
 		self.assets['images']['dealer'] = pygame.image.load(os.path.join('assets', 'images', 'dealer.png'))
 		for suit in Suit:
 			self.assets['images']['monkeys'][suit.value] = pygame.image.load(os.path.join('assets', 'images', 'monkeys', suit.value + '.png'))
@@ -31,18 +32,23 @@ class Renderer():
 			self.turn_popup(board.players[board.turn])
 		elif board.state == State.GAME_OVER_SCREEN:
 			self.game_over_screen(board.final_scores())
+		elif board.state == State.SETTINGS:
+			self.settings_screen(board)
 		pygame.display.flip()
 
 
 	def draw_board(self, board):
 		# mouse
-		if board.hovered_bet or board.hovered_card:
+		if board.hovered_bet or board.hovered_card or board.pointer:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 		else:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 		# background
 		self.surface.blit(self.assets['images']['background'], (0,0))
+
+		# settings button
+		self.surface.blit(self.assets['images']['cog'], (SETTINGS_BUTTON_LEFT, SETTINGS_BUTTON_TOP))
 
 		# top text
 		top_text = ""
@@ -85,11 +91,10 @@ class Renderer():
 		# bets
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-			if suit not in board.removed_suits:
-				coords = [(x_cord + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET)]
+			coords = [(x_cord + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET)]
 
-				for i in range(len(board.bets[suit])):
-					self.surface.blit(self.assets['images']['fruits'][board.bets[suit][i].value], coords[i])
+			for i in range(len(board.bets[suit])):
+				self.surface.blit(self.assets['images']['fruits'][board.bets[suit][i].value], coords[i])
 			x_cord += COLUMN_SPACING
 
 		# top cards
@@ -155,3 +160,29 @@ class Renderer():
 			text1 = self.assets['fonts']['font1'].render(string, True, WHITE)
 			text_rect = text1.get_rect(center=(self.surface.get_width() / 2, (self.surface.get_height() / 2) + y_offset[i]))
 			self.surface.blit(text1, text_rect)
+
+
+	def settings_screen(self, board):
+		pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(100, 100, 520, 280))
+
+		# settings text
+		text1 = self.assets['fonts']['font1'].render("Settings", True, WHITE)
+		text_rect = text1.get_rect(center=(self.surface.get_width() / 2, 120))
+		self.surface.blit(text1, text_rect)
+
+		# music button
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(120, 150, 20, 20))
+		if board.music_on:
+			pygame.draw.rect(self.surface, BLACK, pygame.Rect(122, 152, 16, 16))
+
+		# music text
+		text2 = self.assets['fonts']['font1'].render("Music", True, WHITE)
+		self.surface.blit(text2, (160, 135))
+
+		# done button
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(EXIT_SETTINGS_BUTTON_LEFT, EXIT_SETTINGS_BUTTON_TOP, EXIT_SETTINGS_BUTTON_WIDTH, EXIT_SETTINGS_BUTTON_HEIGHT))
+		text3 = self.assets['fonts']['font1'].render("Done", True, BLACK)
+		text_rect = text3.get_rect(center=(EXIT_SETTINGS_BUTTON_LEFT+EXIT_SETTINGS_BUTTON_WIDTH/2, (EXIT_SETTINGS_BUTTON_TOP+EXIT_SETTINGS_BUTTON_HEIGHT/2)))
+		self.surface.blit(text3, text_rect)
+
+

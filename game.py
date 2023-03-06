@@ -3,6 +3,7 @@ import pygame
 import random
 import time
 
+from constants import *
 from player import Player
 from enums import Fruit, State, Wait
 from board import Board
@@ -43,13 +44,15 @@ def poll_input(board):
         if ev.type == pygame.QUIT:
             pygame.quit()
 
-        board.mouse_click = (ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1)
+        board.mouse_click = (ev.type == pygame.MOUSEBUTTONUP and ev.button == 1)
 
     mouse = pygame.mouse.get_pos()
     board.mouse_coords = {'x': mouse[0], 'y': mouse[1]}
 
 
 def update_game(board):
+    # assume that nothing is hovered by default
+    board.pointer = False
 
     # TURN_POPUP => PRE_BET, BET
     if board.state == State.TURN_POPUP and board.wait_time == 0:
@@ -108,7 +111,7 @@ def update_game(board):
     # ROUND_ENDED => TURN_POPUP, GAME_OVER_SCREEN
     elif board.state == State.ROUND_ENDED and board.wait_time == 0:
         board.reset()
-        
+
         if board.game_complete():
             board.state = State.GAME_OVER_SCREEN
             return
@@ -116,7 +119,31 @@ def update_game(board):
         board.state = State.TURN_POPUP
         board.wait_time = Wait.TURN_POPUP.value
 
-    if board.wait_time > 0:
+
+    # Test if settings button is clicked
+    if SETTINGS_BUTTON_LEFT <= board.mouse_coords['x'] <= SETTINGS_BUTTON_LEFT + SETTINGS_BUTTON_WIDTH and SETTINGS_BUTTON_TOP <= board.mouse_coords['y'] <= SETTINGS_BUTTON_TOP + SETTINGS_BUTTON_WIDTH:
+        board.pointer = True
+        if board.mouse_click and board.state != State.SETTINGS:
+            board.return_state = board.state
+            board.state = State.SETTINGS
+
+    # Test if music button in settings is clicked
+    if MUSIC_BUTTON_LEFT <= board.mouse_coords['x'] <= MUSIC_BUTTON_LEFT + MUSIC_BUTTON_WIDTH and MUSIC_BUTTON_TOP <= board.mouse_coords['y'] <= MUSIC_BUTTON_TOP + MUSIC_BUTTON_WIDTH:
+        board.pointer = True
+        if board.mouse_click:
+            board.music_on = not board.music_on
+            board.mouse_click = False
+
+    # Test if done button in settings is clicked
+    if EXIT_SETTINGS_BUTTON_LEFT <= board.mouse_coords['x'] <= EXIT_SETTINGS_BUTTON_LEFT + EXIT_SETTINGS_BUTTON_WIDTH and EXIT_SETTINGS_BUTTON_TOP <= board.mouse_coords['y'] <= EXIT_SETTINGS_BUTTON_TOP + EXIT_SETTINGS_BUTTON_WIDTH:
+        board.pointer = True
+        if board.mouse_click:
+            board.state = board.return_state
+            board.return_state = None
+            board.mouse_click = False
+
+    # decrement wait time if game is not paused
+    if board.wait_time > 0 and board.state != State.SETTINGS:
         board.wait_time -= 1
 
 
