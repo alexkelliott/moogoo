@@ -1,96 +1,159 @@
 # Sorting algorithims and pygame practice
 import pygame
-import random
-import time
+import os
 
-from player import Player
-from enums import Fruit
-from board import Board
-from renderer import Renderer
+from constants import *
+from enums import Fruit, State, Wait
+from game_state import Game_State
 
-pygame.init()
-pygame.display.set_caption('Moogoo Monkey')
+fps = 60
 
-screen_height = 480
-screen_width = 720
-surface = pygame.display.set_mode((screen_width, screen_height))
 
-nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
-    
+def poll_input(game_state):
+    game_state.mouse_click = False
 
-def wait(time):
-    while time > 0:
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
+    for ev in pygame.event.get():
+        if ev.type == pygame.QUIT:
             pygame.quit()
 
-        pygame.time.wait(1)
-        time -= 1
+        if ev.type == pygame.MOUSEBUTTONUP and ev.button == 1:
+            game_state.mouse_click = True
+            game_state.mouse_down = False
+
+        if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+            game_state.mouse_down = True
 
 
-def init():
-    # init renderer
-        renderer = Renderer(surface)
+    mouse = pygame.mouse.get_pos()
+    game_state.mouse_coords = {'x': mouse[0], 'y': mouse[1]}
 
-        # init players
-        names = random.sample(nameChoices, 2)
-        players = []
-        players.append(Player("Alex", Fruit.COCONUT, is_human=True))
-        players.append(Player(names[0], Fruit.WATERMELON))
-        players.append(Player(names[1], Fruit.PINEAPPLE))
-        
-        # init board
-        board = Board(players)
 
-        return board, renderer
+def mouse_in(mouse_coords, left, width, top, height):
+    return left <= mouse_coords['x'] <= left + width and top <= mouse_coords['y'] <= top + height
+
+
+def update_game(game_state):
+    # assume that nothing is hovered by default
+    game_state.pointer = False
+    board = game_state.board
+
+    # TURN_POPUP => PRE_BET, BET
+    if game_state.state == State.TURN_POPUP and game_state.wait_time == 0:
+        if board.players[board.turn].is_human:
+            if board.bet_boxes_full():
+                game_state.state = State.CARD_SELECTION
+            else:
+                game_state.state = State.BET
+        else: # npc
+            if board.bet_boxes_full():
+                game_state.state = State.PRE_CARD_SELECTION
+                game_state.wait_time = Wait.PRE_CARD_SELECTION.value
+            else:
+                game_state.state = State.PRE_BET
+                game_state.wait_time = Wait.PRE_BET.value
+
+    # PRE_BET => BET
+    elif game_state.state == State.PRE_BET and game_state.wait_time == 0:
+        game_state.state = State.BET
+
+    # BET => PRE_CARD_SELECTION, CARD_SELECTION, TURN_POPUP
+    elif game_state.state == State.BET:
+        if board.handle_bet_selection():
+            if board.three_bets():
+                if board.players[board.turn].is_human:
+                    game_state.state = State.CARD_SELECTION
+                else:
+                    game_state.state = State.PRE_CARD_SELECTION
+                    game_state.wait_time = Wait.TURN_POPUP.value
+            else:
+                board.next_turn()
+                game_state.state = State.TURN_POPUP
+                game_state.wait_time = Wait.TURN_POPUP.value
+
+    # PRE_CARD_SELECTION => CARD_SELECTION 
+    elif game_state.state == State.PRE_CARD_SELECTION and game_state.wait_time == 0:
+        game_state.state = State.CARD_SELECTION
+
+    # CARD_SELECTION => POST_CARD_SELECTION
+    elif game_state.state == State.CARD_SELECTION:
+        if board.handle_card_selection():
+            game_state.state = State.POST_CARD_SELECTION
+            game_state.wait_time = Wait.POST_CARD_SELECTION.value
+
+    # POST_CARD_SELECTION => TURN_POPUP, ROUND_ENDED, GAME_OVER_SCREEN
+    elif game_state.state == State.POST_CARD_SELECTION and game_state.wait_time == 0:
+        if board.round_complete():
+            game_state.state = State.ROUND_ENDED
+            game_state.wait_time = Wait.ROUND_ENDED.value
+
+        else:
+            board.next_turn()
+            game_state.state = State.TURN_POPUP
+            game_state.wait_time = Wait.TURN_POPUP.value
+
+    # ROUND_ENDED => TURN_POPUP, GAME_OVER_SCREEN
+    elif game_state.state == State.ROUND_ENDED and game_state.wait_time == 0:
+        board.reset()
+
+        if board.game_complete():
+            game_state.state = State.GAME_OVER_SCREEN
+            return
+
+        game_state.state = State.TURN_POPUP
+        game_state.wait_time = Wait.TURN_POPUP.value
+
+    # Test if settings button is clicked
+    if mouse_in(game_state.mouse_coords, SETTINGS_BUTTON_LEFT, SETTINGS_BUTTON_WIDTH, SETTINGS_BUTTON_TOP, SETTINGS_BUTTON_WIDTH):
+        game_state.pointer = True
+        if game_state.mouse_click and game_state.state != State.SETTINGS:
+            game_state.return_state = game_state.state
+            game_state.state = State.SETTINGS
+
+    # Test if music button in settings is clicked
+    if mouse_in(game_state.mouse_coords, MUSIC_BUTTON_LEFT, MUSIC_BUTTON_WIDTH, MUSIC_BUTTON_TOP, MUSIC_BUTTON_WIDTH):
+        game_state.pointer = True
+        if game_state.mouse_click:
+            if game_state.music_on:
+                pygame.mixer.music.pause()
+            else:
+                pygame.mixer.music.unpause()
+
+            game_state.music_on = not game_state.music_on
+
+    # volume slider
+    vol_left = VOL_SLIDER_LEFT + game_state.volume * (VOL_SLIDER_WIDTH)
+    if mouse_in(game_state.mouse_coords, VOL_SLIDER_LEFT, VOL_SLIDER_WIDTH, VOL_SLIDER_TOP-10, 25):
+        game_state.pointer = True
+        if game_state.mouse_down:
+            game_state.volume = (game_state.mouse_coords['x']-5 - VOL_SLIDER_LEFT) / VOL_SLIDER_WIDTH
+            pygame.mixer.music.set_volume(game_state.volume)
+
+    # Test if done button in settings is clicked
+    if game_state.state == State.SETTINGS:
+        if mouse_in(game_state.mouse_coords, EXIT_SETTINGS_BUTTON_LEFT, EXIT_SETTINGS_BUTTON_WIDTH, EXIT_SETTINGS_BUTTON_TOP, EXIT_SETTINGS_BUTTON_HEIGHT):
+            game_state.pointer = True
+            if game_state.mouse_click:
+                game_state.state = game_state.return_state
+                game_state.return_state = None
+
+    # decrement wait time if game is not paused
+    if game_state.wait_time > 0 and game_state.state != State.SETTINGS:
+        game_state.wait_time -= 1
 
 
 if __name__ == "__main__":
-    board, renderer = init()
-    
-    while not board.game_complete():
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
-            break
+    # init
+    pygame.init()
+    game_state = Game_State()
+    clock = pygame.time.Clock()
 
-        board.reset()
-        renderer.render(board)
-        wait(500)
-
-        while not board.round_complete():
-            renderer.top_text = "Place a bet"
-            renderer.render(board)
-            renderer.player_turn_popup(board.players[board.turn])
-            wait(500)
-            renderer.render(board) # erase turn popup
-
-            wait(100)
-            board.handle_bet_selection(renderer)
-            if board.three_bets():
-                renderer.top_text = "Play a card"
-            renderer.render(board)
-
-            # only wait for card selection if its a computer's turn
-            if board.turn:
-                wait(350)
-
-            # card selection if enough bets are on the table
-            if board.three_bets():
-                board.handle_card_selection(renderer)
-                renderer.render(board)
-                wait(400)
-
-            next_player = board.next_turn()
-
-    renderer.top_text = "Game over"
-    renderer.render(board)
-    wait(1000)
-    renderer.game_over_screen(board.final_scores())
-
+    # game loop
     while True:
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
-            break
+        poll_input(game_state)
+        update_game(game_state)
+        game_state.renderer.render(game_state)
+        clock.tick(fps)
 
-    pygame.quit()
-        
+
+# TODO:
+#   -make function to detect if mouse is in a certain bound
