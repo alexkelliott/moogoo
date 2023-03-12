@@ -14,56 +14,54 @@ fps = 60
 lobbies = []
 
 def listen_for_clients(server_sock):
-    # while True:
-    conn, addr = server_sock.accept()
-    if conn and addr:
-        print("client connected")
+	# while True:
+	conn, addr = server_sock.accept()
+	if conn and addr:
+		print("client connected")
 
-        # if len(lobbies) == 0:
-        #     lobbies.append(Lobby(addr))
-        # lobbies[0].client_sockets.append(conn)
-        # print(lobbies[0])
-        # lobbies[0].start_game()
-        # conn.send(pickle.dumps(lobbies[0].game_state))
+		# if len(lobbies) == 0:
+		#     lobbies.append(Lobby(addr))
+		# lobbies[0].client_sockets.append(conn)
+		# print(lobbies[0])
+		# lobbies[0].start_game()
+		# conn.send(pickle.dumps(lobbies[0].game_state))
 
-    # server_sock.close() 
+	# server_sock.close() 
 
 
 
 if __name__ == "__main__":
-    
-    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_sock.bind((IP, PORT))
-    server_sock.listen(2)
+	
+	server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	server_sock.bind((IP, PORT))
+	server_sock.listen(2)
 
-    #Start threads
-    # server_thread = threading.Thread(target=listen_for_clients, args=(server_sock,), daemon=True)
-    # server_thread.start()
-    
-    clock = pygame.time.Clock()
-    
-    conn, addr = server_sock.accept()
-    print("client connected!")
+	#Start threads
+	# server_thread = threading.Thread(target=listen_for_clients, args=(server_sock,), daemon=True)
+	# server_thread.start()
+	
+	clock = pygame.time.Clock()
+	
+	
 
-    name = conn.recv(1024)
-    print("name:", name.decode())
+	lobby = Lobby(server_sock)
+	
 
-    lobby = Lobby(conn)
-    lobby.client_socket.sendall(b"Let's get ready to rumble")
+	try:
+		while True:
+			lobby.update_game()
 
-    try:
-        while True:
-            lobby.update_game()
+			#busy wait
+			clock.tick(fps)
 
-            #busy wait
-            clock.tick(fps)
+	except Exception as e:
 
-    except Exception as e:
-        print(e)
+		print("Stopping...")
+		print(e)
 
-        #close all threads
-        server_sock.close()
-        # server_thread.join()
-        
-        print("All threads successfully terminated")
+		#close all threads
+		server_sock.close()
+		# server_thread.join()
+		
+		print("All threads successfully terminated")

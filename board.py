@@ -1,8 +1,9 @@
 import random
 import pygame
 import time
-import card
+
 from constants import *
+from card import Card
 from enums import Suit, State, Wait
 
 
@@ -13,7 +14,7 @@ class Board():
 		for suit in Suit:
 			for value in range(8):
 				rank = 'q' if value == 0 else str(value)
-				self.deck.append(card.Card(suit, rank, value))
+				self.deck.append(Card(suit, rank, value))
 
 		self.bets = {}
 		for suit in Suit:
@@ -168,8 +169,6 @@ class Board():
 
 		player = self.players[self.turn]
 		choice = None
-		print("We are in handle bet selection")
-		print("game state is:", self.game_state.__dict__, "\n\n")
 
 		if player.is_human: # Human player's turn
 			self.game_state.hovered_bet = self.get_hovered_bet()

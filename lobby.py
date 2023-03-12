@@ -16,13 +16,25 @@ class Client():
 class Lobby():
 
 	def __init__(self, sock):
-		self.client_socket = sock
-		self.game_state = Game_State(server=True)
-		self.game_state.wait_time = Wait.TURN_POPUP.value
-		self.started = False
 		# init state
 		# self.state = State.TURN_POPUP
 		# self.wait_time = Wait.TURN_POPUP.value
+
+		conn, addr = sock.accept()
+		self.client_socket = conn
+		print("client connected!")
+
+		name = conn.recv(1024)
+		print("name:", name.decode())
+
+		turn_num = 0 # {0, 1, 2}
+
+		self.client_socket.send(bytes(f"{turn_num}", 'utf-8'))
+		
+		self.game_state = Game_State(server=True, name=name.decode())
+		self.game_state.wait_time = Wait.TURN_POPUP.value
+
+		self.started = False
 
 		print("Created lobby")
 
@@ -34,79 +46,96 @@ class Lobby():
 
 		HEADERSIZE = 10
 
-		if self.client_socket:
+		print("new state #2!", self.game_state.board.turn)
 
-			msg = pickle.dumps(self.game_state)
-			msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8')+msg
-			# print("sending:", msg)
-			self.client_socket.send(msg)
-			print("Sent game state")
+		msg = pickle.dumps(self.game_state)
+		msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8')+msg
+		self.client_socket.send(msg)
+		print("Sent game state")
 
-			# self.client_socket.send(pickle.dumps(self.game_state))
-			# self.client_socket.sendall(b"I hope this works")
-		else:
-			print("failed to send")
 
 
 	def listen_for_update(self):
-		raw_board = self.client_sockets[0].recv(4096)
-		print("server received:", raw_board)
+		HEADERSIZE = 10
 
-		# rec_game_state = pickle.loads(raw_board)
-		print("updated")
+		print("listening for player update...")
+
+		while True:
+			full_msg = b''
+			new_msg = True
+
+			while True:
+				msg = self.client_socket.recv(16)
+				if new_msg:
+					msglen = int(msg[:HEADERSIZE])
+					new_msg = False
+
+				full_msg += msg
+
+				if len(full_msg)-HEADERSIZE == msglen:
+					break
+
+			raw_board = full_msg[HEADERSIZE:]
+			received_board = pickle.loads(raw_board)
+			received_board.game_state = None # clear the backward reference
+			self.game_state.board = received_board
+			print("received player update")
+			break
+
 
 
 	def update_game(self):
 
-		board = self.game_state.board
+		print(self.game_state.state, '\t', self.game_state.wait_time, '\t', self.game_state.board.players[self.game_state.board.turn].name)
 
-		print(self.game_state.state, '\t', self.game_state.wait_time, '\t', board.players[board.turn].name)
+		og_board_state = self.game_state.state
 
 		# TURN_POPUP => PRE_BET, BET
 		if self.game_state.state == State.TURN_POPUP and self.game_state.wait_time == 0:
-			if board.players[board.turn].is_human:
-				if board.bet_boxes_full():
+			if self.game_state.board.players[self.game_state.board.turn].is_human:
+				if self.game_state.board.bet_boxes_full():
 					self.game_state.state = State.CARD_SELECTION
 				else:
 					self.game_state.state = State.BET
 			else: # npc
-				if board.bet_boxes_full():
+				if self.game_state.board.bet_boxes_full():
 					self.game_state.state = State.PRE_CARD_SELECTION
 					self.game_state.wait_time = Wait.PRE_CARD_SELECTION.value
 				else:
 					self.game_state.state = State.PRE_BET
 					self.game_state.wait_time = Wait.PRE_BET.value
 
-			self.update_clients()
+			# self.update_clients()
 
 		# PRE_BET => BET
 		elif self.game_state.state == State.PRE_BET and self.game_state.wait_time == 0:
 			self.game_state.state = State.BET
-			self.update_clients()
+			# self.update_clients()
 
 		# BET => PRE_CARD_SELECTION, CARD_SELECTION, TURN_POPUP
 		elif self.game_state.state == State.BET:
-			if board.players[board.turn].is_human:
+			if self.game_state.board.players[self.game_state.board.turn].is_human:
+
 				# wait for the player to play
-				# if board.three_bets():
-				# 	self.game_state.state = State.CARD_SELECTION
-				# else:
-				# 	board.next_turn()
-				# 	self.game_state.state = State.TURN_POPUP
-				# 	self.game_state.wait_time = Wait.TURN_POPUP.value
+				self.listen_for_update()
+
+				if self.game_state.board.three_bets():
+					self.game_state.state = State.CARD_SELECTION
+				else:
+					self.game_state.board.next_turn()
+
+					self.game_state.state = State.TURN_POPUP
+					self.game_state.wait_time = Wait.TURN_POPUP.value
 				pass
 			else:
-				if board.handle_bet_selection():
-					if board.three_bets():
+				if self.game_state.board.handle_bet_selection():
+					if self.game_state.board.three_bets():
 						self.game_state.state = State.PRE_CARD_SELECTION
 						self.game_state.wait_time = Wait.TURN_POPUP.value
 					else:
-						board.next_turn()
+						self.game_state.board.next_turn()
 						self.game_state.state = State.TURN_POPUP
 						self.game_state.wait_time = Wait.TURN_POPUP.value
-
-			self.update_clients()
-			# self.listen_for_update()
 
 		# PRE_CARD_SELECTION => CARD_SELECTION 
 		elif self.game_state.state == State.PRE_CARD_SELECTION and self.game_state.wait_time == 0:
@@ -114,48 +143,50 @@ class Lobby():
 
 		# CARD_SELECTION => POST_CARD_SELECTION
 		elif self.game_state.state == State.CARD_SELECTION:
-			if board.handle_card_selection():
+			if self.game_state.board.players[self.game_state.board.turn].is_human:
+
+				# wait for the player to play
+				self.listen_for_update()
+				
 				self.game_state.state = State.POST_CARD_SELECTION
 				self.game_state.wait_time = Wait.POST_CARD_SELECTION.value
 
+			else:
+				if self.game_state.board.handle_card_selection():
+					self.game_state.state = State.POST_CARD_SELECTION
+					self.game_state.wait_time = Wait.POST_CARD_SELECTION.value
+
 		# POST_CARD_SELECTION => TURN_POPUP, ROUND_ENDED, GAME_OVER_SCREEN
 		elif self.game_state.state == State.POST_CARD_SELECTION and self.game_state.wait_time == 0:
-			if board.round_complete():
+			if self.game_state.board.round_complete():
 				self.game_state.state = State.ROUND_ENDED
 				self.game_state.wait_time = Wait.ROUND_ENDED.value
 
 			else:
-				board.next_turn()
+				self.game_state.board.next_turn()
 				self.game_state.state = State.TURN_POPUP
 				self.game_state.wait_time = Wait.TURN_POPUP.value
 
 		# ROUND_ENDED => TURN_POPUP, GAME_OVER_SCREEN
 		elif self.game_state.state == State.ROUND_ENDED and self.game_state.wait_time == 0:
-			board.reset()
+			self.game_state.board.reset()
 
-			if board.game_complete():
+			if self.game_state.board.game_complete():
 				self.game_state.state = State.GAME_OVER_SCREEN
-				return
+			else:
+				self.game_state.state = State.TURN_POPUP
+				self.game_state.wait_time = Wait.TURN_POPUP.value
 
-			self.game_state.state = State.TURN_POPUP
-			self.game_state.wait_time = Wait.TURN_POPUP.value
+
+		if og_board_state != self.game_state.state:
+			print("new state #1!", self.game_state.board.turn)
+			self.update_clients()
+			print("new state #3!", self.game_state.board.turn)
+
+
 
 		if self.game_state.wait_time > 0:
 			self.game_state.wait_time -= 1
-
-
-	def start_game(self):
-		# init players
-		names = random.sample(nameChoices, 2)
-		players = []
-		players.append(Player("Alex-Multi", Fruit.COCONUT, is_human=True))
-		players.append(Player(names[0], Fruit.WATERMELON))
-		players.append(Player(names[1], Fruit.PINEAPPLE))
-
-		self.game_state.board = Board(players, None)
-
-		self.started = True
-		print("Created board", self.game_state.board.players)
 
 
 	# def __repr__(self):

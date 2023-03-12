@@ -12,12 +12,13 @@ nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoa
 
 class Game_State():
 
-	def __init__(self, server=False):
+	def __init__(self, server=False, name=None, player_turn_num=None):
 		# init players
 		names = random.sample(nameChoices, 2)
 		players = []
-		# players.append(Player("Alex", Fruit.COCONUT, is_human=True))
-		players.append(Player("Alex-NPC", Fruit.COCONUT, is_human=False))
+		if not name:
+			name = "Placeholdername"
+		players.append(Player(name, Fruit.COCONUT, is_human=True))
 		players.append(Player(names[0], Fruit.WATERMELON))
 		players.append(Player(names[1], Fruit.PINEAPPLE))
 		
@@ -26,10 +27,11 @@ class Game_State():
 
 		# init state
 		self.state = State.TURN_POPUP
-		self.return_state = None # state to return to after visiting settings menu
 		self.wait_time = Wait.TURN_POPUP.value
 
 		if not server:
+			self.player_turn_num = player_turn_num
+
 			# init renderer
 			self.renderer = Renderer()
 
@@ -50,12 +52,10 @@ class Game_State():
 			self.hovered_bet = None
 			self.hovered_card = None
 
-	# def __getstate__(self):
-	# 	state = self.__dict__.copy()
-	# 	state = {key: state[key] for key in state if key in ["board", "state", "wait_time"]}
-	# 	return state
+			# settings
+			self.settings_open = False # only used in multiplayer
+			self.return_state = None # state to return to after visiting settings menu
 
-	# def __setstate__(self, state):
-	# 	print("SETSTATE CALLED", state)
-	# 	self.__dict__.update(state)
-
+# TODO:
+#	-implement __getstate__ for pickle
+#	-change return state to settings open for single player

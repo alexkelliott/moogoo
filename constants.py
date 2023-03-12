@@ -1,4 +1,6 @@
+#
 # positional constants
+# 
 
 # game board
 SETTINGS_BUTTON_TOP = 10
@@ -34,3 +36,10 @@ EXIT_SETTINGS_BUTTON_HEIGHT = 50
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 DARK_GREEN = (0, 104, 76)
+
+#
+# Game constants
+#
+
+# networking
+HEADERSIZE = 10
