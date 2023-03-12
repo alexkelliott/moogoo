@@ -30,6 +30,9 @@ class Game_State():
 		self.wait_time = Wait.TURN_POPUP.value
 
 		if not server:
+			# read user settings file
+			self.user_settings = {"player_name": None, "ip": None, "port" : None}
+			
 			self.player_turn_num = player_turn_num
 
 			# init renderer

@@ -33,8 +33,17 @@ class Renderer():
 
 
 	def render(self, game_state):
+		# mouse
+		if game_state.hovered_bet or game_state.hovered_card or game_state.pointer:
+			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+		else:
+			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-		self.draw_board(game_state)
+		if game_state.state == State.LOBBY:
+			self.lobby_screen(game_state)
+		else:
+			self.draw_board(game_state)
+
 		if game_state.state == State.TURN_POPUP:
 			self.turn_popup(game_state.board.players[game_state.board.turn])
 		elif game_state.state == State.GAME_OVER_SCREEN:
@@ -51,12 +60,6 @@ class Renderer():
 
 	def draw_board(self, game_state):
 		board = game_state.board
-
-		# mouse
-		if game_state.hovered_bet or game_state.hovered_card or game_state.pointer:
-			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-		else:
-			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 		# background
 		self.surface.blit(self.assets['images']['background'], (0,0))
@@ -174,6 +177,36 @@ class Renderer():
 			text1 = self.assets['fonts']['font1'].render(string, True, WHITE)
 			text_rect = text1.get_rect(center=(self.surface.get_width() / 2, (self.surface.get_height() / 2) + y_offset[i]))
 			self.surface.blit(text1, text_rect)
+
+
+	def lobby_screen(self, game_state):
+		pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(0, 0, screen_width, screen_height))
+
+		text0 = self.assets['fonts']['font1'].render("Reading data from user_settings.json...", True, WHITE)
+		self.surface.blit(text0, (10, 10))
+
+		text1 = self.assets['fonts']['font1'].render("Player Name:", True, WHITE)
+		self.surface.blit(text1, (30, 70))
+		text2 = self.assets['fonts']['font1'].render(str(game_state.user_settings["player_name"]), True, WHITE)
+		self.surface.blit(text2, (300, 70))
+
+		text3 = self.assets['fonts']['font1'].render("Server Details", True, WHITE)
+		self.surface.blit(text3, (10, 150))
+
+		text3 = self.assets['fonts']['font1'].render("IP/HostName:", True, WHITE)
+		self.surface.blit(text3, (30, 200))
+		text4 = self.assets['fonts']['font1'].render(str(game_state.user_settings["ip"]), True, WHITE)
+		self.surface.blit(text4, (300, 200))
+		text5 = self.assets['fonts']['font1'].render("IP/Port:", True, WHITE)
+		self.surface.blit(text5, (30, 250))
+		text6 = self.assets['fonts']['font1'].render(str(game_state.user_settings["port"]), True, WHITE)
+		self.surface.blit(text6, (300, 250))
+
+		# connect button
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_HEIGHT))
+		text3 = self.assets['fonts']['font1'].render("Connect", True, BLACK)
+		text_rect = text3.get_rect(center=(LOBBY_CONNECT_BUTTON_LEFT+LOBBY_CONNECT_BUTTON_WIDTH/2, (LOBBY_CONNECT_BUTTON_TOP+LOBBY_CONNECT_BUTTON_HEIGHT/2)))
+		self.surface.blit(text3, text_rect)
 
 
 	def settings_screen(self, game_state):

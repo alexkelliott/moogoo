@@ -2,14 +2,13 @@ import pygame
 import threading
 import pickle
 import socket
+import json
 
 from constants import *
 from enums import Fruit, State, Wait
 from game_state import Game_State
 
 fps = 60
-HOST = "127.0.0.1"
-PORT = 13000
 
 def poll_input(game_state):
 	game_state.mouse_click = False
@@ -33,8 +32,8 @@ def mouse_in(mouse_coords, left, width, top, height):
 	return left <= mouse_coords['x'] <= left + width and top <= mouse_coords['y'] <= top + height
 
 
-def update_server(game_state, sock):
-	msg = pickle.dumps(game_state.board)
+def update_server(board, sock):
+	msg = pickle.dumps(board)
 	msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8')+msg
 	sock.send(msg)
 
@@ -48,11 +47,11 @@ def update_game(game_state, sock, turn_num):
 	if board.turn == turn_num and not game_state.settings_open:
 		if game_state.state == State.BET:
 			if board.handle_bet_selection():
-				update_server(game_state, sock)
+				update_server(game_state.board, sock)
 
 		elif game_state.state == State.CARD_SELECTION:
 			if board.handle_card_selection():
-				update_server(game_state, sock)
+				update_server(game_state.board, sock)
 
 	# # Test if settings button is clicked
 	if mouse_in(game_state.mouse_coords, SETTINGS_BUTTON_LEFT, SETTINGS_BUTTON_WIDTH, SETTINGS_BUTTON_TOP, SETTINGS_BUTTON_WIDTH):
@@ -60,8 +59,8 @@ def update_game(game_state, sock, turn_num):
 		if game_state.mouse_click:
 			game_state.settings_open = not game_state.settings_open
 
-	# # Test if music button in settings is clicked
 	if game_state.settings_open:
+		# Test if music button in settings is clicked
 		if mouse_in(game_state.mouse_coords, MUSIC_BUTTON_LEFT, MUSIC_BUTTON_WIDTH, MUSIC_BUTTON_TOP, MUSIC_BUTTON_WIDTH):
 			game_state.pointer = True
 			if game_state.mouse_click:
@@ -84,6 +83,9 @@ def update_game(game_state, sock, turn_num):
 			game_state.pointer = True
 			if game_state.mouse_click:
 				game_state.settings_open = False
+
+	if game_state.state == State.LOBBY:
+		pass
 
 	# # decrement wait time
 	if game_state.wait_time > 0:
@@ -116,19 +118,43 @@ def listen_for_server_update(sock, game_state):
 
 
 if __name__ == "__main__":
-	# init socket
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.connect((HOST, PORT))
 
-	# tell server the chosen name and get back the turn number
-	sock.sendall(b"PlayernameHere")
-	turn_num = int(sock.recv(16).decode())
-	
 	# init game variables
 	pygame.init()
 	clock = pygame.time.Clock()
-	game_state = Game_State(player_turn_num=turn_num)
+	game_state = Game_State(player_turn_num=-1)
+	game_state.state = State.LOBBY
 
+	# read user settings
+	with open("user_settings.json", "r") as us:
+		settings = json.loads(us.read())
+		game_state.user_settings = {
+			"ip":          settings["hostname"],
+			"port":        int(settings["port"]),
+			"player_name": settings["player_name"]}
+	us.close()
+
+	# lobby loop
+	# clean this up
+	while True:
+		poll_input(game_state)
+		game_state.pointer = False
+		if mouse_in(game_state.mouse_coords, LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_HEIGHT):
+			game_state.pointer = True
+			if game_state.mouse_click:
+				break
+		game_state.renderer.render(game_state)
+		clock.tick(fps)
+
+	# init socket
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.connect((game_state.user_settings["ip"], game_state.user_settings["port"]))
+
+	# # tell server the chosen name and get back the turn number
+	sock.sendall(game_state.user_settings["player_name"].encode())
+	turn_num = int(sock.recv(16).decode())
+	game_state.turn_num = 1
+	
 	# start thread to listen for server updates
 	server_listen_thread = threading.Thread(target=listen_for_server_update, args=(sock,game_state,), daemon=True)
 	server_listen_thread.start()
@@ -144,3 +170,4 @@ if __name__ == "__main__":
 #	-create lobby join screen (make just one lobby for now, multiple lobbies for later)
 #	-allow for user to choose their own name
 #	-allow for multiple clients
+#	-add graceful failure if can't connect to server

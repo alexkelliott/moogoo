@@ -54,16 +54,21 @@ class Board():
 
 		self.reset()
 
-	def __getstate__(self):
-		state = self.__dict__.copy()
-		# Don't pickle baz
-		del state["game_state"]
-		return state
+	# def __getstate__(self):
+	# 	state = self.__dict__.copy()
+	# 	# Don't pickle baz
+	# 	del state["game_state"]
+	# 	return state
 
-	def __setstate__(self, state):
-		self.__dict__.update(state)
-		self.game_state = None
+	# def __setstate__(self, state):
+	# 	self.__dict__.update(state)
+	# 	self.game_state = None
 	
+	def __getstate__(self):
+			state = self.__dict__.copy()
+			del state["game_state"]
+			return state
+
 
 	def lowest_suit(self):
 		top_card_list = [c for c in self.top_card.values() if c]

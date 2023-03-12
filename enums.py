@@ -23,7 +23,8 @@ class State(enum.Enum):
 	POST_CARD_SELECTION = 5
 	ROUND_ENDED = 6
 	GAME_OVER_SCREEN = 7
-	SETTINGS = 8
+	SETTINGS = 8,
+	LOBBY = 9
 
 class Wait(enum.Enum):
 	# 60 = 1 second

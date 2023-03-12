@@ -2,6 +2,7 @@ import random
 import pickle
 import sys # temporary
 
+from constants import *
 from game_state import Game_State
 from board import Board
 from enums import Fruit, State, Wait
@@ -36,29 +37,18 @@ class Lobby():
 
 		self.started = False
 
+		self.update_clients()
+
 		print("Created lobby")
 
 
 	def update_clients(self):
-		# for conn in self.client_sockets:
-		# 	conn.send(pickle.dumps(self.game_state))
-		# self.client_socket.send(pickle.dumps(self.game_state))
-
-		HEADERSIZE = 10
-
-		print("new state #2!", self.game_state.board.turn)
-
 		msg = pickle.dumps(self.game_state)
 		msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8')+msg
 		self.client_socket.send(msg)
-		print("Sent game state")
-
 
 
 	def listen_for_update(self):
-		HEADERSIZE = 10
-
-		print("listening for player update...")
 
 		while True:
 			full_msg = b''
@@ -79,9 +69,7 @@ class Lobby():
 			received_board = pickle.loads(raw_board)
 			received_board.game_state = None # clear the backward reference
 			self.game_state.board = received_board
-			print("received player update")
 			break
-
 
 
 	def update_game(self):
@@ -105,12 +93,9 @@ class Lobby():
 					self.game_state.state = State.PRE_BET
 					self.game_state.wait_time = Wait.PRE_BET.value
 
-			# self.update_clients()
-
 		# PRE_BET => BET
 		elif self.game_state.state == State.PRE_BET and self.game_state.wait_time == 0:
 			self.game_state.state = State.BET
-			# self.update_clients()
 
 		# BET => PRE_CARD_SELECTION, CARD_SELECTION, TURN_POPUP
 		elif self.game_state.state == State.BET:
@@ -147,7 +132,7 @@ class Lobby():
 
 				# wait for the player to play
 				self.listen_for_update()
-				
+
 				self.game_state.state = State.POST_CARD_SELECTION
 				self.game_state.wait_time = Wait.POST_CARD_SELECTION.value
 
@@ -177,17 +162,8 @@ class Lobby():
 				self.game_state.state = State.TURN_POPUP
 				self.game_state.wait_time = Wait.TURN_POPUP.value
 
-
 		if og_board_state != self.game_state.state:
-			print("new state #1!", self.game_state.board.turn)
 			self.update_clients()
-			print("new state #3!", self.game_state.board.turn)
-
-
 
 		if self.game_state.wait_time > 0:
 			self.game_state.wait_time -= 1
-
-
-	# def __repr__(self):
-	# 	return str(self.id) + " with " + str(len(self.client_sockets)) + " clients"
