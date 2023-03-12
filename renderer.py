@@ -9,6 +9,9 @@ screen_width = 720
 
 class Renderer():
 	def __init__(self):
+		self.debug = True
+		self.debug_message = ""
+
 		self.surface = pygame.display.set_mode((screen_width, screen_height))
 
 		self.assets = {'fonts' : {}, 'images': {'monkeys': {}, 'fruits': {}, 'cards': {}}}
@@ -37,6 +40,10 @@ class Renderer():
 			self.game_over_screen(game_state.board.final_scores())
 		elif game_state.state == State.SETTINGS:
 			self.settings_screen(game_state)
+
+		if self.debug:
+			self.show_debug()
+
 		pygame.display.flip()
 
 
@@ -201,4 +208,7 @@ class Renderer():
 		text_rect = text3.get_rect(center=(EXIT_SETTINGS_BUTTON_LEFT+EXIT_SETTINGS_BUTTON_WIDTH/2, (EXIT_SETTINGS_BUTTON_TOP+EXIT_SETTINGS_BUTTON_HEIGHT/2)))
 		self.surface.blit(text3, text_rect)
 
+	def show_debug(self):
+		text2 = self.assets['fonts']['font1'].render(str(self.debug_message), True, WHITE)
+		self.surface.blit(text2, (120, 440))
 

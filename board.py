@@ -52,6 +52,16 @@ class Board():
 			x_cord += COLUMN_SPACING
 
 		self.reset()
+
+	def __getstate__(self):
+		state = self.__dict__.copy()
+		# Don't pickle baz
+		del state["game_state"]
+		return state
+
+	def __setstate__(self, state):
+		self.__dict__.update(state)
+		self.game_state = None
 	
 
 	def lowest_suit(self):
@@ -158,6 +168,8 @@ class Board():
 
 		player = self.players[self.turn]
 		choice = None
+		print("We are in handle bet selection")
+		print("game state is:", self.game_state.__dict__, "\n\n")
 
 		if player.is_human: # Human player's turn
 			self.game_state.hovered_bet = self.get_hovered_bet()
