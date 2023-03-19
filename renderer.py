@@ -39,18 +39,24 @@ class Renderer():
 		else:
 			pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-		if game_state.state == State.LOBBY:
+		if game_state.state == State.CONNECT:
+			# Screen showing server selection
+			self.connect_screen(game_state)
+		elif game_state.state == State.LOBBY:
+			# Screen showing lobby
 			self.lobby_screen(game_state)
 		else:
+			# Actual gameplay
 			self.draw_board(game_state)
 
-		if game_state.state == State.TURN_POPUP:
-			self.turn_popup(game_state.board.players[game_state.board.turn])
-		elif game_state.state == State.GAME_OVER_SCREEN:
-			self.game_over_screen(game_state.board.final_scores())
+			if game_state.state == State.TURN_POPUP:
+				self.turn_popup(game_state.board.players[game_state.board.turn])
+			elif game_state.state == State.GAME_OVER_SCREEN:
+				self.game_over_screen(game_state.board.final_scores())
 
-		if game_state.settings_open:
-			self.settings_screen(game_state)
+			if game_state.settings_open:
+				self.settings_screen(game_state)
+
 
 		if self.debug:
 			self.show_debug()
@@ -143,7 +149,7 @@ class Renderer():
 		if board.three_bets():
 			x_cord = PLAYER_FIRST_CARD_LEFT
 
-			for card in board.players[0].hand:
+			for card in board.players[game_state.player_turn_num].hand:
 				self.surface.blit(self.assets['images']['cards'][card.suit.value + card.rank], (x_cord, PLAYER_FIRST_CARD_TOP))
 
 				if card == game_state.hovered_card:
@@ -180,6 +186,40 @@ class Renderer():
 
 
 	def lobby_screen(self, game_state):
+		pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(0, 0, screen_width, screen_height))
+
+		text1 = self.assets['fonts']['font1'].render("Connected", True, WHITE)
+		text_rect = text1.get_rect(center=(self.surface.get_width() / 2, 30))
+		self.surface.blit(text1, text_rect)
+
+		if len(game_state.team_mates):
+			string = "Waiting for " + str(game_state.team_mates[0].name) + " to start the game"
+			text5 = self.assets['fonts']['font1'].render(string, True, WHITE)
+			self.surface.blit(text5, (50, 75))
+
+		string = "Players: " + str(len(game_state.team_mates)) + "/3"
+		text2 = self.assets['fonts']['font1'].render(string, True, WHITE)
+		self.surface.blit(text2, (50, 135))
+
+		y_cord = 200
+		for player in game_state.team_mates:
+			# text
+			text3 = self.assets['fonts']['font1'].render(player.name, True, WHITE)
+			self.surface.blit(text3, (125, y_cord))
+			self.surface.blit(self.assets['images']['fruits'][player.fruit.value], (75, y_cord))
+
+			y_cord += 50
+
+		# only show the start game button to the lobby starter
+		if game_state.player_turn_num == 0:
+			# start game button
+			pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_HEIGHT))
+			text4 = self.assets['fonts']['font1'].render("Start Game", True, BLACK)
+			text_rect = text4.get_rect(center=(LOBBY_CONNECT_BUTTON_LEFT+LOBBY_CONNECT_BUTTON_WIDTH/2, (LOBBY_CONNECT_BUTTON_TOP+LOBBY_CONNECT_BUTTON_HEIGHT/2)))
+			self.surface.blit(text4, text_rect)
+
+
+	def connect_screen(self, game_state):
 		pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(0, 0, screen_width, screen_height))
 
 		text0 = self.assets['fonts']['font1'].render("Reading data from user_settings.json...", True, WHITE)

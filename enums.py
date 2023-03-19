@@ -24,7 +24,8 @@ class State(enum.Enum):
 	ROUND_ENDED = 6
 	GAME_OVER_SCREEN = 7
 	SETTINGS = 8,
-	LOBBY = 9
+	CONNECT = 9,
+	LOBBY = 10
 
 class Wait(enum.Enum):
 	# 60 = 1 second
