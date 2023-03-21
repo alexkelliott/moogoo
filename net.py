@@ -1,7 +1,7 @@
 HEADERSIZE = 10
 
 def send_data(sock, msg):
-	msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8')+msg
+	msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8') + msg
 	sock.send(msg)
 
 	

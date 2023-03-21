@@ -54,10 +54,7 @@ class Board():
 
 		self.reset()
 
-	# def __setstate__(self, state):
-	# 	self.__dict__.update(state)
-	# 	self.game_state = None
-	
+
 	def __getstate__(self):
 			state = self.__dict__.copy()
 			del state["game_state"]

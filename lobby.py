@@ -1,15 +1,13 @@
-import random
 import pickle
 import threading
 
+import net
 from constants import *
-from net import *
 from game_state import Server_Game_State
 from board import Board
 from enums import Fruit, State, Wait
 from player import Player
 
-nameChoices = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
 
 class Client():
 	def __init__(self, sock, player):
@@ -24,20 +22,18 @@ class Client():
 class Lobby():
 
 	def __init__(self, server_sock):
-		# init state
-		# self.state = State.TURN_POPUP
-		# self.wait_time = Wait.TURN_POPUP.value
 		self.server_sock = server_sock
 		self.clients = []
 		self.started = False
 
-		self.list_for_clients_thread = threading.Thread(target=self.listen_for_clients, args=(), daemon=True)
-		self.list_for_clients_thread.start()
+		self.list_for_new_clients_thread = threading.Thread(target=self.listen_for_new_clients, args=(), daemon=True)
+		self.list_for_new_clients_thread.start()
+
 
 	def listen_for_start_msg(self, sock):
 		while not self.started:
 			try:
-				msg = rec_data(sock).decode()
+				msg = net.rec_data(sock).decode()
 				if msg == "START_GAME":
 					self.start_game()
 					break
@@ -53,11 +49,11 @@ class Lobby():
 		self.started = True
 		for client in self.clients:
 			# print("sending start to", client.player.fruit)
-			send_data(client.sock, "STARTING".encode())
+			net.send_data(client.sock, "STARTING".encode())
 		self.list_for_clients_thread.join()
 
 
-	def listen_for_clients(self):
+	def listen_for_new_clients(self):
 		while len(self.clients) < 3 and not self.started:
 			try:
 				conn, addr = self.server_sock.accept()
@@ -65,44 +61,43 @@ class Lobby():
 				print(e)
 				break
 
-			name = rec_data(conn).decode()
-			print("name:", name)
+			if self.started:
+				net.send_data(conn, "STARTED".encode())
+				break
+			else:
+				net.send_data(conn, "CONNECTED".encode())
+
+			name = net.rec_data(conn).decode()
 
 			turn_num = len(self.clients) # {0, 1, 2}
-			send_data(conn, str(turn_num).encode())
+			net.send_data(conn, str(turn_num).encode())
 
 			fruit = [f for f in Fruit][turn_num]
 			new_player = Player(name, fruit, is_human=True)
 			self.clients.append(Client(conn, new_player))
-			print("client connected!")
 
 			for client in self.clients:
-				send_data(client.sock, pickle.dumps(self.clients))
+				net.send_data(client.sock, pickle.dumps(self.clients))
 			
 			if turn_num == 0:
 				self.lsm_thread = threading.Thread(target=self.listen_for_start_msg, args=(conn,), daemon=True)
 				self.lsm_thread.start()
 
-			# print([c.__dict__ for c in self.clients])
-
 
 	def listen_for_client_update(self):
-		print("listening for update from", self.clients[self.game_state.board.turn].player.fruit)
 		sock = self.clients[self.game_state.board.turn].sock
-		raw_board = rec_data(sock)
+		raw_board = net.rec_data(sock)
 		received_board = pickle.loads(raw_board)
 		received_board.game_state = None # clear the backward reference
 		self.game_state.board = received_board
 
 
 	def update_clients(self):
-		print("len", len(self.clients))
 		for client in self.clients:
-			send_data(client.sock, pickle.dumps(self.game_state))
+			net.send_data(client.sock, pickle.dumps(self.game_state))
 
 
 	def update_game(self):
-
 		print(self.game_state.state, '\t', self.game_state.wait_time, '\t', self.game_state.board.players[self.game_state.board.turn].name)
 
 		og_board_state = self.game_state.state

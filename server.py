@@ -25,22 +25,10 @@ if __name__ == "__main__":
 
 	lobby = Lobby(server_sock)
 
-	# try:
 	while True:
 		if lobby.started:
 			lobby.update_game()
 
 		#busy wait
 		clock.tick(fps)
-
-	# except Exception as e:
-
-	# 	print("Stopping...")
-	# 	print(e)
-
-	# 	#close all threads
-	# 	server_sock.close()
-	# 	# server_thread.join()
-		
-	# 	print("All threads successfully terminated")
 	
