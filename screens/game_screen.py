@@ -9,22 +9,22 @@ from enums import State
 
 class Game_Screen(Screen):
 
-	def __init__(self, game_state):
+	def __init__(self, game_state) -> None:
 		super().__init__()
 
 		# start thread to listen for server board updates
-		self.server_listen_thread = threading.Thread(target=self.listen_for_server_update, args=(game_state,), daemon=True)
+		self.server_listen_thread: threading.Thread = threading.Thread(target=self.listen_for_server_update, args=(game_state,), daemon=True)
 		self.server_listen_thread.start()
 
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		return "Game_Screen"
 
 
-	def listen_for_server_update(self, game_state):
+	def listen_for_server_update(self, game_state) -> None:
 		while True:
-			raw_gamestate = net.rec_data(game_state.sock)
-			new_gamestate = pickle.loads(raw_gamestate)
+			raw_gamestate: bytes = net.rec_data(game_state.sock)
+			new_gamestate: 'Game_State' = pickle.loads(raw_gamestate)
 			new_gamestate.board.game_state = game_state
 
 			game_state.board = new_gamestate.board
@@ -33,27 +33,23 @@ class Game_Screen(Screen):
 			game_state.renderer.debug_message = new_gamestate.state
 
 
-	def send_server_board(self, board, sock):
+	def send_server_board(self, board, sock) -> None:
 		net.send_data(sock, pickle.dumps(board))
 
 
-	def update(self, game_state):
+	def update(self, game_state) -> None:
 		# wait for the server to send over the board
 		if not game_state.board:
 			return
 
-		# assume that nothing is hovered by default
-		game_state.pointer = False
-		board = game_state.board
-
 		# it is this player's turn
-		if board.turn == game_state.player_turn_num and not game_state.settings_open:
+		if game_state.board.turn == game_state.player_turn_num and not game_state.settings_open:
 			if game_state.state == State.BET:
-				if board.handle_bet_selection():
+				if game_state.board.handle_bet_selection():
 					self.send_server_board(game_state.board, game_state.sock)
 
 			elif game_state.state == State.CARD_SELECTION:
-				if board.handle_card_selection():
+				if game_state.board.handle_card_selection():
 					self.send_server_board(game_state.board, game_state.sock)
 
 		# # Test if settings button is clicked

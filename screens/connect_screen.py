@@ -9,16 +9,15 @@ from constants import *
 
 class Connect_Screen(Screen):
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		return "Connect_Screen"		
 
 
-	def update(self, game_state):
-		game_state.pointer = False
+	def update(self, game_state) -> None:
 		if self.mouse_in(game_state.mouse_coords, LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_HEIGHT):
 			game_state.pointer = True
 
@@ -27,7 +26,7 @@ class Connect_Screen(Screen):
 				game_state.sock.connect((game_state.user_settings["ip"], game_state.user_settings["port"]))
 
 				# listen for server respond
-				msg = net.rec_data(game_state.sock).decode()
+				msg: str = net.rec_data(game_state.sock).decode()
 				if msg == "STARTED":
 					print("game is already in progress")
 

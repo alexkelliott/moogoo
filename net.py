@@ -1,18 +1,19 @@
-HEADERSIZE = 10
+HEADERSIZE: int = 10
 
-def send_data(sock, msg):
-	msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8') + msg
+def send_data(sock, msg) -> None:
+	msg: bytes = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8') + msg
 	sock.send(msg)
 
 	
-def rec_data(sock):
-	full_msg = b''
-	new_msg = True
+def rec_data(sock) -> bytes:
+	full_msg: bytes = b''
+	new_msg: bool = True
+
 	while True:
-		msg = sock.recv(16)
+		msg: bytes = sock.recv(16)
 
 		if new_msg:
-			msglen = int(msg[:HEADERSIZE])
+			msglen: int = int(msg[:HEADERSIZE])
 			new_msg = False
 
 		full_msg += msg

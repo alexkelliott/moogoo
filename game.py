@@ -1,20 +1,22 @@
 import pygame
+from pygame.time import Clock
 import json
 
-from game_state import Client_Game_State
+from game_state import Game_State, Client_Game_State
 
-fps = 60
+fps: int = 60
+
 
 if __name__ == "__main__":
 
 	# init game variables
 	pygame.init()
-	clock = pygame.time.Clock()
-	game_state = Client_Game_State()
+	clock: Clock = Clock()
+	game_state: Game_State = Client_Game_State()
 
 	# read user settings
 	with open("user_settings.json", "r") as us:
-		settings = json.loads(us.read())
+		settings: dict[str, str] = json.loads(us.read())
 		game_state.user_settings = {
 			"ip":          settings["hostname"],
 			"port":        int(settings["port"]),
