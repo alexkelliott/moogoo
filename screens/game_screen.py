@@ -1,6 +1,7 @@
 import net
 import pickle
 import threading
+from pygame.mixer import music
 
 from screens.screen import Screen
 from constants import *
@@ -64,9 +65,9 @@ class Game_Screen(Screen):
 				game_state.pointer = True
 				if game_state.mouse_click:
 					if game_state.music_on:
-						pygame.mixer.music.pause()
+						music.pause()
 					else:
-						pygame.mixer.music.unpause()
+						music.unpause()
 
 					game_state.music_on = not game_state.music_on
 
@@ -74,8 +75,8 @@ class Game_Screen(Screen):
 			elif self.mouse_in(game_state.mouse_coords, VOL_SLIDER["left"], VOL_SLIDER["width"], VOL_SLIDER["top"]-10, 25):
 				game_state.pointer = True
 				if game_state.mouse_down:
-					game_state.volume = (game_state.mouse_coords['x']-5 - VOL_SLIDER_LEFT) / VOL_SLIDER_WIDTH
-					pygame.mixer.music.set_volume(game_state.volume)
+					game_state.volume = (game_state.mouse_coords['x']-5 - VOL_SLIDER["left"]) / VOL_SLIDER["width"]
+					music.set_volume(game_state.volume)
 
 			# # Test if done button in settings is clicked
 			elif self.mouse_in(game_state.mouse_coords, EXIT_SETTINGS_BUTTON["left"], EXIT_SETTINGS_BUTTON["width"], EXIT_SETTINGS_BUTTON["top"], EXIT_SETTINGS_BUTTON["height"]):

@@ -52,7 +52,7 @@ class Lobby():
 		self.started = True
 		for client in self.clients:
 			net.send_data(client.sock, "STARTING".encode())
-		self.list_for_clients_thread.join()
+		self.list_for_new_clients_thread.join()
 
 
 	def listen_for_new_clients(self):
