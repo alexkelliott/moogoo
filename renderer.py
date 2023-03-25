@@ -74,7 +74,7 @@ class Renderer():
 		self.surface.blit(self.assets['images']['background'], (0,0))
 
 		# settings button
-		self.surface.blit(self.assets['images']['cog'], (SETTINGS_BUTTON_LEFT, SETTINGS_BUTTON_TOP))
+		self.surface.blit(self.assets['images']['cog'], (SETTINGS_BUTTON["left"], SETTINGS_BUTTON["top"]))
 
 		# top text
 		top_text: str = ""
@@ -90,18 +90,18 @@ class Renderer():
 		self.surface.blit(text1, text_rect)
 
 		# dealer
-		self.surface.blit(self.assets['images']['dealer'], (DEALER_LEFT, DEALER_TOP))
+		self.surface.blit(self.assets['images']['dealer'], (DEALER["left"], DEALER["top"]))
 
 		# monkeys
 		x_cord: int = COLUMN_LEFT
 		for suit in Suit:
 			# monkey image
 			if suit not in board.removed_suits:
-				self.surface.blit(self.assets['images']['monkeys'][suit.value], (x_cord, DEALER_TOP))
+				self.surface.blit(self.assets['images']['monkeys'][suit.value], (x_cord, DEALER["top"]))
 			# red x over monkey if being removed
 			if game_state.state == State.ROUND_ENDED and suit == board.lowest_suit():
 				if game_state.wait_time % 30 >= 15: # make it blink
-					self.surface.blit(self.assets['images']['red_x'], (x_cord, DEALER_TOP))
+					self.surface.blit(self.assets['images']['red_x'], (x_cord, DEALER["top"]))
 
 			x_cord += COLUMN_SPACING
 
@@ -110,14 +110,14 @@ class Renderer():
 		for suit in Suit:
 			if suit not in board.removed_suits:
 				if suit == game_state.hovered_bet:
-					for coords in [(x_cord, BET_BOX_TOP), (x_cord + 42, BET_BOX_TOP), (x_cord, BET_BOX_TOP + 42), (x_cord + 42, BET_BOX_TOP + 42)]:
+					for coords in [(x_cord, BET_BOX["top"]), (x_cord + 42, BET_BOX["top"]), (x_cord, BET_BOX["top"] + 42), (x_cord + 42, BET_BOX["top"] + 42)]:
 						self.surface.blit(self.assets['images']['bet_box_hover'], coords)
 			x_cord += COLUMN_SPACING
 
 		# bets
 		x_cord = COLUMN_LEFT
 		for suit in Suit:
-			coords = [(x_cord + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + BET_OFFSET), (x_cord + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET), (x_cord + 42 + BET_OFFSET, BET_BOX_TOP + 42 + BET_OFFSET)]
+			coords = [(x_cord + BET_BOX["offset"], BET_BOX["top"] + BET_BOX["offset"]), (x_cord + 42 + BET_BOX["offset"], BET_BOX["top"] + BET_BOX["offset"]), (x_cord + BET_BOX["offset"], BET_BOX["top"] + 42 + BET_BOX["offset"]), (x_cord + 42 + BET_BOX["offset"], BET_BOX["top"] + 42 + BET_BOX["offset"])]
 
 			for i in range(len(board.bets[suit])):
 				self.surface.blit(self.assets['images']['fruits'][board.bets[suit][i].value], coords[i])
@@ -132,31 +132,31 @@ class Renderer():
 
 		# "score" text
 		txt1: pygame.surface.Surface = self.assets['fonts']['font1'].render("Score", True, WHITE)
-		self.surface.blit(txt1, (DEALER_LEFT + 10, SCORE_BAY_FRUIT_TOP - 45))
+		self.surface.blit(txt1, (DEALER["left"] + 10, SCORE_BAY_FRUIT_TOP - 45))
 
 		# score fruit + number
 		y_cord: int = SCORE_BAY_FRUIT_TOP
 		for fruit in Fruit:
-			self.surface.blit(self.assets['images']['fruits'][fruit.value], (DEALER_LEFT + 2, y_cord + 2))
+			self.surface.blit(self.assets['images']['fruits'][fruit.value], (DEALER["left"] + 2, y_cord + 2))
 			for player in board.players:
 				if player.fruit == fruit:
 					score = self.assets['fonts']['font1'].render(str(player.score), True, WHITE)
 
 					# top text
-					text_rect = score.get_rect(center=(DEALER_LEFT + 70, y_cord + 18))
+					text_rect = score.get_rect(center=(DEALER["left"] + 70, y_cord + 18))
 					self.surface.blit(score, text_rect)
 
 			y_cord += 40
 
 		# player's cards
 		if board.three_bets():
-			x_cord = PLAYER_FIRST_CARD_LEFT
+			x_cord = PLAYER_FIRST_CARD["left"]
 
 			for card in board.players[game_state.player_turn_num].hand:
-				self.surface.blit(self.assets['images']['cards'][card.suit.value + card.rank], (x_cord, PLAYER_FIRST_CARD_TOP))
+				self.surface.blit(self.assets['images']['cards'][card.suit.value + card.rank], (x_cord, PLAYER_FIRST_CARD["top"]))
 
 				if card == game_state.hovered_card:
-					self.surface.blit(self.assets['images']['card_hover'], (x_cord, PLAYER_FIRST_CARD_TOP))
+					self.surface.blit(self.assets['images']['card_hover'], (x_cord, PLAYER_FIRST_CARD["top"]))
 
 				x_cord += COLUMN_SPACING
 
@@ -217,9 +217,9 @@ class Renderer():
 		# only show the start game button to the lobby starter
 		if game_state.player_turn_num == 0:
 			# start game button
-			pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_HEIGHT))
+			pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON["left"], LOBBY_CONNECT_BUTTON["top"], LOBBY_CONNECT_BUTTON["width"], LOBBY_CONNECT_BUTTON["height"]))
 			text4: Surface = self.assets['fonts']['font1'].render("Start Game", True, BLACK)
-			text_rect: pygame.Rect = text4.get_rect(center=(LOBBY_CONNECT_BUTTON_LEFT+LOBBY_CONNECT_BUTTON_WIDTH/2, (LOBBY_CONNECT_BUTTON_TOP+LOBBY_CONNECT_BUTTON_HEIGHT/2)))
+			text_rect: pygame.Rect = text4.get_rect(center=(LOBBY_CONNECT_BUTTON["left"]+LOBBY_CONNECT_BUTTON["width"]/2, (LOBBY_CONNECT_BUTTON["top"]+LOBBY_CONNECT_BUTTON["height"]/2)))
 			self.surface.blit(text4, text_rect)
 
 
@@ -247,9 +247,9 @@ class Renderer():
 		self.surface.blit(text6, (300, 250))
 
 		# connect button
-		pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_HEIGHT))
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON["left"], LOBBY_CONNECT_BUTTON["top"], LOBBY_CONNECT_BUTTON["width"], LOBBY_CONNECT_BUTTON["height"]))
 		text3: Surface = self.assets['fonts']['font1'].render("Connect", True, BLACK)
-		text_rect: pygame.Rect = text3.get_rect(center=(LOBBY_CONNECT_BUTTON_LEFT+LOBBY_CONNECT_BUTTON_WIDTH/2, (LOBBY_CONNECT_BUTTON_TOP+LOBBY_CONNECT_BUTTON_HEIGHT/2)))
+		text_rect: pygame.Rect = text3.get_rect(center=(LOBBY_CONNECT_BUTTON["left"]+LOBBY_CONNECT_BUTTON["width"]/2, (LOBBY_CONNECT_BUTTON["top"]+LOBBY_CONNECT_BUTTON["height"]/2)))
 		self.surface.blit(text3, text_rect)
 
 
@@ -263,9 +263,9 @@ class Renderer():
 		self.surface.blit(text1, text_rect)
 
 		# music button
-		pygame.draw.rect(self.surface, WHITE, pygame.Rect(MUSIC_BUTTON_LEFT, MUSIC_BUTTON_TOP, MUSIC_BUTTON_WIDTH, MUSIC_BUTTON_WIDTH))
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(MUSIC_BUTTON["left"], MUSIC_BUTTON["top"], MUSIC_BUTTON["width"], MUSIC_BUTTON["height"]))
 		if game_state.music_on:
-			pygame.draw.rect(self.surface, BLACK, pygame.Rect(MUSIC_BUTTON_LEFT+2, MUSIC_BUTTON_TOP+2, MUSIC_BUTTON_WIDTH-4, MUSIC_BUTTON_WIDTH-4))
+			pygame.draw.rect(self.surface, BLACK, pygame.Rect(MUSIC_BUTTON["left"]+2, MUSIC_BUTTON["top"]+2, MUSIC_BUTTON["width"]-4, MUSIC_BUTTON["height"]-4))
 
 		# music text
 		text1: Surface = self.assets['fonts']['font1'].render("Music", True, WHITE)
@@ -276,16 +276,16 @@ class Renderer():
 		self.surface.blit(text2, (115, 175))
 
 		# volume slider bar
-		pygame.draw.rect(self.surface, WHITE, pygame.Rect(VOL_SLIDER_LEFT, VOL_SLIDER_TOP, VOL_SLIDER_WIDTH, VOL_SLIDER_HEIGHT))
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(VOL_SLIDER["left"], VOL_SLIDER["top"], VOL_SLIDER["width"], VOL_SLIDER["height"]))
 
 		# volume slider handle
-		left_pos: int = VOL_SLIDER_LEFT + game_state.volume * (VOL_SLIDER_WIDTH)
+		left_pos: int = VOL_SLIDER["left"] + game_state.volume * (VOL_SLIDER["width"])
 		pygame.draw.rect(self.surface, WHITE, pygame.Rect(left_pos, 190, 10, 25))
 
 		# done button
-		pygame.draw.rect(self.surface, WHITE, pygame.Rect(EXIT_SETTINGS_BUTTON_LEFT, EXIT_SETTINGS_BUTTON_TOP, EXIT_SETTINGS_BUTTON_WIDTH, EXIT_SETTINGS_BUTTON_HEIGHT))
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(EXIT_SETTINGS_BUTTON["left"], EXIT_SETTINGS_BUTTON["top"], EXIT_SETTINGS_BUTTON["width"], EXIT_SETTINGS_BUTTON["height"]))
 		text3: Surface = self.assets['fonts']['font1'].render("Done", True, BLACK)
-		text_rect: pyagme.Rect = text3.get_rect(center=(EXIT_SETTINGS_BUTTON_LEFT+EXIT_SETTINGS_BUTTON_WIDTH/2, (EXIT_SETTINGS_BUTTON_TOP+EXIT_SETTINGS_BUTTON_HEIGHT/2)))
+		text_rect: pyagme.Rect = text3.get_rect(center=(EXIT_SETTINGS_BUTTON["left"]+EXIT_SETTINGS_BUTTON["width"]/2, (EXIT_SETTINGS_BUTTON["top"]+EXIT_SETTINGS_BUTTON["height"]/2)))
 		self.surface.blit(text3, text_rect)
 
 

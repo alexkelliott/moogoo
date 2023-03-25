@@ -48,7 +48,7 @@ class Lobby_Screen(Screen):
 
 		# test for start game button press
 		if game_state.player_turn_num == 0:
-			if self.mouse_in(game_state.mouse_coords, LOBBY_CONNECT_BUTTON_LEFT, LOBBY_CONNECT_BUTTON_WIDTH, LOBBY_CONNECT_BUTTON_TOP, LOBBY_CONNECT_BUTTON_HEIGHT):
+			if self.mouse_in(game_state.mouse_coords, LOBBY_CONNECT_BUTTON["left"], LOBBY_CONNECT_BUTTON["width"], LOBBY_CONNECT_BUTTON["top"], LOBBY_CONNECT_BUTTON["height"]):
 				game_state.pointer = True
 				if game_state.mouse_click:
 					# send start game message to server

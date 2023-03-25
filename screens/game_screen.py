@@ -53,14 +53,14 @@ class Game_Screen(Screen):
 					self.send_server_board(game_state.board, game_state.sock)
 
 		# # Test if settings button is clicked
-		if self.mouse_in(game_state.mouse_coords, SETTINGS_BUTTON_LEFT, SETTINGS_BUTTON_WIDTH, SETTINGS_BUTTON_TOP, SETTINGS_BUTTON_WIDTH):
+		if self.mouse_in(game_state.mouse_coords, SETTINGS_BUTTON["left"], SETTINGS_BUTTON["width"], SETTINGS_BUTTON["top"], SETTINGS_BUTTON["height"]):
 			game_state.pointer = True
 			if game_state.mouse_click:
 				game_state.settings_open = not game_state.settings_open
 
 		if game_state.settings_open:
 			# Test if music button in settings is clicked
-			if self.mouse_in(game_state.mouse_coords, MUSIC_BUTTON_LEFT, MUSIC_BUTTON_WIDTH, MUSIC_BUTTON_TOP, MUSIC_BUTTON_WIDTH):
+			if self.mouse_in(game_state.mouse_coords, MUSIC_BUTTON["left"], MUSIC_BUTTON["width"], MUSIC_BUTTON["top"], MUSIC_BUTTON["height"]):
 				game_state.pointer = True
 				if game_state.mouse_click:
 					if game_state.music_on:
@@ -71,14 +71,14 @@ class Game_Screen(Screen):
 					game_state.music_on = not game_state.music_on
 
 			# volume slider
-			elif self.mouse_in(game_state.mouse_coords, VOL_SLIDER_LEFT, VOL_SLIDER_WIDTH, VOL_SLIDER_TOP-10, 25):
+			elif self.mouse_in(game_state.mouse_coords, VOL_SLIDER["left"], VOL_SLIDER["width"], VOL_SLIDER["top"]-10, 25):
 				game_state.pointer = True
 				if game_state.mouse_down:
 					game_state.volume = (game_state.mouse_coords['x']-5 - VOL_SLIDER_LEFT) / VOL_SLIDER_WIDTH
 					pygame.mixer.music.set_volume(game_state.volume)
 
 			# # Test if done button in settings is clicked
-			elif self.mouse_in(game_state.mouse_coords, EXIT_SETTINGS_BUTTON_LEFT, EXIT_SETTINGS_BUTTON_WIDTH, EXIT_SETTINGS_BUTTON_TOP, EXIT_SETTINGS_BUTTON_HEIGHT):
+			elif self.mouse_in(game_state.mouse_coords, EXIT_SETTINGS_BUTTON["left"], EXIT_SETTINGS_BUTTON["width"], EXIT_SETTINGS_BUTTON["top"], EXIT_SETTINGS_BUTTON["height"]):
 				game_state.pointer = True
 				if game_state.mouse_click:
 					game_state.settings_open = False

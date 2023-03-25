@@ -11,7 +11,6 @@ class Screen():
 		game_state.mouse_click = False
 		game_state.pointer = False
 
-
 		for ev in pygame.event.get():
 			if ev.type == pygame.QUIT:
 				pygame.quit()

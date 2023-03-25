@@ -37,21 +37,21 @@ class Board():
 		for suit in Suit:
 			self.bet_boundaries[suit] = {
 				"left"  : x_cord,
-				"right" : x_cord + BET_BOX_WIDTH,
-				"top"   : BET_BOX_TOP,
-				"bottom": BET_BOX_TOP + BET_BOX_WIDTH,
+				"right" : x_cord + BET_BOX["width"],
+				"top"   : BET_BOX["top"],
+				"bottom": BET_BOX["top"] + BET_BOX["width"],
 			}
 			x_cord += COLUMN_SPACING
 
 		# intialize the boundary boxes for selecting cards
 		self.card_boundaries: dict[int, dict[str, int]] = {}
-		x_cord = PLAYER_FIRST_CARD_LEFT
+		x_cord = PLAYER_FIRST_CARD["left"]
 		for i in range(5): # 5 cards
 			self.card_boundaries[i] = {
 				"left"  : x_cord,
 				"right" : x_cord + CARD_SIZE[0],
-				"top"   : PLAYER_FIRST_CARD_TOP,
-				"bottom": PLAYER_FIRST_CARD_TOP + CARD_SIZE[1],
+				"top"   : PLAYER_FIRST_CARD["top"],
+				"bottom": PLAYER_FIRST_CARD["top"] + CARD_SIZE[1],
 			}
 			x_cord += COLUMN_SPACING
 
