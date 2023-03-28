@@ -3,7 +3,7 @@ from pygame.surface import Surface
 import os
 
 from constants import *
-from enums import Fruit, Suit, State
+from enums import Fruit, Suit, State, Error
 
 pygame.display.set_caption('Moogoo Monkey')
 screen_height: int = 480
@@ -55,7 +55,7 @@ class Renderer():
 			if game_state.state == State.TURN_POPUP:
 				self.turn_popup(game_state.board.players[game_state.board.turn])
 			elif game_state.state == State.GAME_OVER_SCREEN:
-				self.game_over_screen(game_state.board.final_scores())
+				self.game_over_screen(game_state)
 
 			if game_state.settings_open:
 				self.settings_screen(game_state)
@@ -174,11 +174,12 @@ class Renderer():
 		self.surface.blit(text1, text_rect)
 
 
-	def game_over_screen(self, players) -> None:
+	def game_over_screen(self, game_state) -> None:
 		# Dark green background
 		background = pygame.draw.rect(self.surface, DARK_GREEN, pygame.Rect(75, 170, 570, 140))
 
 		# Text
+		players = game_state.board.final_scores()
 		words: list[str] = [" wins", " is second", " is third"]
 		y_offset: list[int] = [-40, 0, 40]
 		for i in range(len(players)):
@@ -186,6 +187,12 @@ class Renderer():
 			text1: Surface = self.assets['fonts']['font1'].render(string, True, WHITE)
 			text_rect = text1.get_rect(center=(self.surface.get_width() / 2, (self.surface.get_height() / 2) + y_offset[i]))
 			self.surface.blit(text1, text_rect)
+
+		# connect screen return
+		pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON["left"], LOBBY_CONNECT_BUTTON["top"], LOBBY_CONNECT_BUTTON["width"], LOBBY_CONNECT_BUTTON["height"]))
+		text4: Surface = self.assets['fonts']['font1'].render("Done", True, BLACK)
+		text_rect: pygame.Rect = text4.get_rect(center=(LOBBY_CONNECT_BUTTON["left"]+LOBBY_CONNECT_BUTTON["width"]/2, (LOBBY_CONNECT_BUTTON["top"]+LOBBY_CONNECT_BUTTON["height"]/2)))
+		self.surface.blit(text4, text_rect)
 
 
 	def lobby_screen(self, game_state) -> None:
@@ -249,8 +256,23 @@ class Renderer():
 		# connect button
 		pygame.draw.rect(self.surface, WHITE, pygame.Rect(LOBBY_CONNECT_BUTTON["left"], LOBBY_CONNECT_BUTTON["top"], LOBBY_CONNECT_BUTTON["width"], LOBBY_CONNECT_BUTTON["height"]))
 		text3: Surface = self.assets['fonts']['font1'].render("Connect", True, BLACK)
-		text_rect: pygame.Rect = text3.get_rect(center=(LOBBY_CONNECT_BUTTON["left"]+LOBBY_CONNECT_BUTTON["width"]/2, (LOBBY_CONNECT_BUTTON["top"]+LOBBY_CONNECT_BUTTON["height"]/2)))
-		self.surface.blit(text3, text_rect)
+		text_rect1: pygame.Rect = text3.get_rect(center=(LOBBY_CONNECT_BUTTON["left"]+LOBBY_CONNECT_BUTTON["width"]/2, (LOBBY_CONNECT_BUTTON["top"]+LOBBY_CONNECT_BUTTON["height"]/2)))
+		self.surface.blit(text3, text_rect1)
+
+		# error text
+		error_msg = ""
+		match game_state.error:
+			case Error.SERVER_STARTED:
+				error_msg = "Server has already started!"
+			case Error.LOBBY_FULL:
+				error_msg = "Lobby is full!"
+			case Error.CONN_REFUSED:
+				error_msg = "Connection refused."
+
+		text7: Surface = self.assets['fonts']['font1'].render(error_msg, True, WHITE)
+		text_rect2: pygame.Rect = text7.get_rect(center=(self.surface.get_width() / 2, LOBBY_CONNECT_BUTTON["top"]+LOBBY_CONNECT_BUTTON["height"]+20))
+		self.surface.blit(text7, text_rect2)
+
 
 
 	def settings_screen(self, game_state) -> None:

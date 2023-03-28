@@ -4,10 +4,13 @@ import socket
 import os
 
 from screens.connect_screen import Connect_Screen
+from screens.lobby_screen import Lobby_Screen
+from screens.game_screen import Game_Screen
+from screens.screen import Screen
 from board import Board
 from renderer import Renderer
 from player import Player
-from enums import Fruit, State, Wait, Suit
+from enums import Fruit, State, Wait, Suit, Screen_Type
 
 nameChoices: list[str] = ["Ava Cadavra", "Misty Waters", "Daddy Bigbucks", "Giuseppi Mezzoalto", "Dusty Hogg", "Phoebe Twiddle", "Luthor L. Bigbucks", "Lottie Cash", "Detective Dan D. Mann", "Pritchard Locksley", "Futo Maki", "Ephram Earl", "Lily Gates", "Cannonball Coleman", "Sue Pirmova", "Lincoln Broadsheet", "Crawdad Clem", "Bayou Boo", "Maximillian Moore", "Bucki Brock", "Berkeley Clodd", "Gramma Hattie", "Pepper Pete", "Dr. Mauricio Keys", "Olde Salty", "Lloyd", "Harlan King", "Daschell Swank", "Kris Thristle"]
 
@@ -51,7 +54,7 @@ class Client_Game_State(Game_State):
 		# read user settings file
 		self.user_settings: dict[str, [str | int]] = {"player_name": None, "ip": None, "port" : None}
 		
-		self.current_screen: Connect_Screen = Connect_Screen()
+		self.current_screen: Screen = Connect_Screen(self)
 		self.state: State = State.CONNECT
 
 		self.sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,4 +84,21 @@ class Client_Game_State(Game_State):
 
 		# settings
 		self.settings_open: bool = False # only used in multiplayer
-		self.return_state: State = None # state to return to after visiting settings menu
+		self.return_state: State = None # state to return to after visiting settings 
+
+		self.error = None
+
+	def switch_screen(self, new_screen):
+		match new_screen:
+		    case Screen_Type.CONNECT:
+		         self.current_screen = Connect_Screen(self)
+		    case Screen_Type.LOBBY:
+		         self.current_screen = Lobby_Screen(self)
+		    case Screen_Type.GAME:
+		         self.current_screen = Game_Screen(self)
+
+
+	def reset_sock(self):
+		if self.sock:
+			self.sock.close()
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

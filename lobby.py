@@ -21,6 +21,7 @@ class Client():
 		del state["sock"]
 		return state
 
+
 class Lobby():
 
 	def __init__(self, server_sock):
@@ -53,6 +54,10 @@ class Lobby():
 		for client in self.clients:
 			net.send_data(client.sock, "STARTING".encode())
 		self.list_for_new_clients_thread.join()
+
+
+	def end_game(self):
+		self.__init__(self.server_sock)
 
 
 	def listen_for_new_clients(self):
@@ -185,9 +190,14 @@ class Lobby():
 
 			if self.game_state.board.game_complete():
 				self.game_state.state = State.GAME_OVER_SCREEN
+
 			else:
 				self.game_state.state = State.TURN_POPUP
 				self.game_state.wait_time = Wait.TURN_POPUP.value
+
+		elif self.game_state.state == State.GAME_OVER_SCREEN:
+			self.end_game()
+			return
 
 		if og_board_state != self.game_state.state:
 			self.update_clients()

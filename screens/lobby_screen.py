@@ -3,7 +3,7 @@ import threading
 import net
 
 from screens.screen import Screen
-from screens.game_screen import Game_Screen
+from enums import Screen_Type
 from constants import *
 
 
@@ -43,7 +43,7 @@ class Lobby_Screen(Screen):
 	def update(self, game_state) -> None:
 		# if thread is dead, game has started, change screens
 		if not self.lobby_listen_thread.is_alive():
-			game_state.current_screen = Game_Screen(game_state)
+			game_state.switch_screen(Screen_Type.GAME)
 			self.lobby_listen_thread.join() # <- not sure if necessary
 
 		# test for start game button press

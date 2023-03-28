@@ -29,7 +29,7 @@ class Board():
 
 		self.players: list[Player] = players
 		self.turn: int = 2 # {0, 1, 2}. game starts on player 2 for some reason		
-		self.removed_suits: list[Suit] = []
+		self.removed_suits: list[Suit] = [Suit.ORANGE, Suit.BLUE]
 
 		# intialize the boundary boxes for selecting bets
 		self.bet_boundaries: dict[Suit, dict[str, int]] = {}

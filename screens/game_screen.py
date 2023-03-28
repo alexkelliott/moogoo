@@ -5,7 +5,7 @@ from pygame.mixer import music
 
 from screens.screen import Screen
 from constants import *
-from enums import State
+from enums import State, Screen_Type
 
 
 class Game_Screen(Screen):
@@ -83,6 +83,15 @@ class Game_Screen(Screen):
 				game_state.pointer = True
 				if game_state.mouse_click:
 					game_state.settings_open = False
+
+		# back to connect screen
+		if game_state.state == State.GAME_OVER_SCREEN:
+			if self.mouse_in(game_state.mouse_coords, LOBBY_CONNECT_BUTTON["left"], LOBBY_CONNECT_BUTTON["width"], LOBBY_CONNECT_BUTTON["top"], LOBBY_CONNECT_BUTTON["height"]):
+				game_state.pointer = True
+				if game_state.mouse_click:
+					game_state.reset_sock()
+					game_state.state = State.CONNECT
+					game_state.switch_screen(Screen_Type.CONNECT)
 
 		# # decrement wait time
 		if game_state.wait_time > 0:

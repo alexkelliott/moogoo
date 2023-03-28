@@ -27,6 +27,7 @@ if __name__ == "__main__":
 		game_state.current_screen.poll_input(game_state)
 		game_state.current_screen.update(game_state)
 		game_state.renderer.render(game_state)
+		print(game_state.current_screen)
 		clock.tick(fps)
 
 
@@ -37,5 +38,4 @@ if __name__ == "__main__":
 #	-change return state to settings open for single player
 #	-make the lobby screen actually decent
 #	-handle clients leaving
-#	-make new set of dimmmensions for start game button
-#	-dictionary representation of buttons and such
+#	-make new set of dimmmensions for buttons that are using dupes
